@@ -1,0 +1,4 @@
+site_name: NetSchool API Docs
+theme:
+    name: readthedocs
+    highlightjs: true
