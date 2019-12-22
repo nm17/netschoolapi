@@ -6,7 +6,8 @@ from typing import Optional
 import asks
 
 from netschoolapi.data import Lesson
-from netschoolapi.utils import LoginData
+from netschoolapi.exceptions import WrongCredentialsError, RateLimitingError, UnknownServerError
+from netschoolapi.utils import LoginForm
 
 
 class NetSchoolAPI:
@@ -20,15 +21,20 @@ class NetSchoolAPI:
     def __init__(self, url):
         self.url = url.rstrip("/")
 
-    async def login(self, login, password, school: str, **kwargs):
+    async def get_form_data(self, for_: Optional[str] = "schools"):
+        login_data = LoginForm(url=self.url)
+        return list(map(lambda a: a["name"], (await login_data.login_form_data)[for_]))
+
+    async def login(self, login: str, password: str, school: str):
         await self.session.get(self.url)
 
         resp = await self.session.post(self.url + "/webapi/auth/getdata")
+        print(resp.text)
         data = resp.json()
         lt, ver, salt = data["lt"], data["ver"], data["salt"]
 
-        login_data = LoginData()
-        await login_data.get_login_data(url=self.url, school=school, **kwargs)
+        login_data = LoginForm(url=self.url)
+        await login_data.get_login_data(school=school)
 
         pw2 = hashlib.new(
             "md5",
@@ -50,7 +56,17 @@ class NetSchoolAPI:
             data=data,
             headers={"Referer": self.url + "/about.html"},  # Referer REQUIRED
         )
-        self.at = resp.json()["at"]
+        try:
+            self.at = resp.json()["at"]
+        except KeyError as err:
+            error_message = resp.json()["message"]
+            # noinspection GrazieInspection
+            if "Следующая попытка может быть совершена не ранее чем" in error_message:
+                raise RateLimitingError("Rate limited by the server. Try again later.") from err
+            elif "Неправильный пароль" in error_message:
+                raise WrongCredentialsError("Incorrect credentials provided.") from err
+            else:
+                raise UnknownServerError("message: " + error_message)
         resp = await self.session.post(
             self.url + "/angular/school/studentdiary/", data={"AT": self.at, "VER": ver}
         )
@@ -62,9 +78,6 @@ class NetSchoolAPI:
     async def get_diary(
         self, week_start: Optional[datetime] = None, week_end: Optional[datetime] = None
     ):
-        resp = await self.session.get(
-            self.url + "/webapi/student/diary/init", headers={"at": self.at}
-        )
         if week_start is None:
             week_start = datetime.now() - timedelta(days=7)
         if week_end is None:
@@ -80,7 +93,6 @@ class NetSchoolAPI:
             },
             headers={"at": self.at},
         )
-        print(resp.text)
         return [
             [Lesson().create(lesson_data) for lesson_data in day["lessons"]]
             for day in resp.json()["weekDays"]

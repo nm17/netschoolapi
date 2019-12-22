@@ -1,12 +1,9 @@
-from pprint import pprint
-from typing import Optional, NamedTuple
+from typing import Optional
 
 import asks
-import trio
-from loguru import logger
 
 
-class LoginData:
+class LoginForm:
     CID: int
     SID: int
     PID: int
@@ -15,9 +12,18 @@ class LoginData:
     SCID: int
     ECardID = ""
 
+    def __init__(self, url):
+        self.__url = url
+
+    @property
+    async def login_form_data(self) -> dict:
+        resp = await asks.get(self.__url.rstrip("/") + "/webapi/prepareloginform")
+        assert resp.status_code == 200
+
+        return resp.json()
+
     async def get_login_data(
         self,
-        url: str,
         school: str,
         country: Optional[str] = None,
         func: Optional[str] = None,
@@ -26,12 +32,7 @@ class LoginData:
         city: Optional[str] = None,
     ):
         # TODO: Reorder everything
-        resp = await asks.get(url.rstrip("/") + "/webapi/prepareloginform")
-        assert resp.status_code == 200
-
-        data = resp.json()
-
-        logger.debug(data)
+        data = await self.login_form_data
 
         countries = {item["name"].strip(): item["id"] for item in data["countries"]}
         cities = {item["name"].strip(): item["id"] for item in data["cities"]}
@@ -47,9 +48,3 @@ class LoginData:
         self.SFT = data["sft"] if func is None else funcs[func]
         self.SID = data["sid"] if state is None else states[state]
         self.SCID = data["scid"] if school is None else schools[school]
-
-        logger.debug(
-            'School "{school}" found (scid: {scid})', school=school, scid=self.SCID
-        )
-
-        logger.debug("Got new login data: {data}", data=self.__dict__)
