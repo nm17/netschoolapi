@@ -1,6 +1,6 @@
 <h1 align="center">Welcome to NetSchool API 👋</h1>
 <p>
-  <img alt="Version" src="https://img.shields.io/badge/version-1.0.0-blue.svg?cacheSeconds=2592000" />
+  <img alt="Version" src="https://img.shields.io/badge/version-0.1.0-blue.svg?cacheSeconds=2592000" />
   <a href="https://netschoolapi.readthedocs.com" target="_blank">
     <img alt="Documentation" src="https://img.shields.io/badge/documentation-wip-orange.svg" />
   </a>
@@ -25,7 +25,9 @@ pip install netschoolapi
 
 ## 🤝Вклады в проект
 
-Вклады, вопросы и пожелания приветствуются! <br /> Не стесняйтесь проверять [страница вопросов] (https://github.com/nm17/netschoolapi/issues).
+Вклады, вопросы и пожелания приветствуются!  
+Не стесняйтесь проверять [страницу вопросов](https://github.com/nm17/netschoolapi/issues).
+
 ## Покажите свою поддержку
 
 Дайте :star:️, если этот проект помог вам!
