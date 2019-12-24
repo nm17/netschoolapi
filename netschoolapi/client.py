@@ -3,7 +3,7 @@ import re
 from datetime import datetime, timedelta
 from typing import Optional
 
-import asks
+import httpx
 
 from netschoolapi.data import Lesson
 from netschoolapi.exceptions import WrongCredentialsError, RateLimitingError, UnknownServerError
@@ -16,7 +16,7 @@ class NetSchoolAPI:
     user_id: int = None
     year_id: int = None
 
-    session = asks.Session(persist_cookies=True)
+    session = httpx.Client()
 
     def __init__(self, url):
         self.url = url.rstrip("/")
@@ -28,8 +28,7 @@ class NetSchoolAPI:
     async def login(self, login: str, password: str, school: str):
         await self.session.get(self.url)
 
-        resp = await self.session.post(self.url + "/webapi/auth/getdata")
-        print(resp.text)
+        resp = await self.session.post(self.url + "/webapi/auth/getdata", data=b'')
         data = resp.json()
         lt, ver, salt = data["lt"], data["ver"], data["salt"]
 
