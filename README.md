@@ -1,4 +1,4 @@
-<h1 align="center">Welcome to NetSchool API 👋</h1>
+<h1 align="center">Добро пожаловать в NetSchool API 👋</h1>
 <p>
   <img alt="Version" src="https://img.shields.io/badge/version-0.1.0-blue.svg?cacheSeconds=2592000" />
   <a href="https://netschoolapi.readthedocs.com" target="_blank">
@@ -17,7 +17,7 @@
 pip install netschoolapi
 ```
 
-## Author
+## Автор
 
 👤 **Даниил Николаев**
 
@@ -32,10 +32,7 @@ pip install netschoolapi
 
 Дайте :star:️, если этот проект помог вам!
 
-## 📝 License
+## 📝Лицензия
 
 Copyright © 2019 [Даниил Николаев](https://github.com/nm17).<br />
-This project is [MIT](https://mit-license.org/) licensed.
-
-***
-_This README was generated with ❤️ by [readme-md-generator](https://github.com/kefranabg/readme-md-generator)_
+Этот проект использует [MIT](https://mit-license.org/) лицензию.
