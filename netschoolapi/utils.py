@@ -17,10 +17,11 @@ class LoginForm:
 
     @property
     async def login_form_data(self) -> dict:
-        resp = await httpx.get(self.__url.rstrip("/") + "/webapi/prepareloginform")
-        assert resp.status_code == 200
+        async with httpx.AsyncClient() as client:
+            resp = await client.get(self.__url.rstrip("/") + "/webapi/prepareloginform")
+            assert resp.status_code == 200
 
-        return resp.json()
+            return resp.json()
 
     async def get_login_data(
         self,

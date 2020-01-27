@@ -10,6 +10,7 @@ class Lesson(NamedTuple):
     end_time: time = None
     subject_name: str = None
 
+    # noinspection PyProtectedMember
     @staticmethod
     def create(data):
         lesson = Lesson()
