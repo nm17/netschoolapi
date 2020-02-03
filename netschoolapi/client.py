@@ -96,7 +96,4 @@ class NetSchoolAPI:
                 },
                 headers={"at": self.at},
             )
-        return [
-            [Lesson().create(lesson_data) for lesson_data in day["lessons"]]
-            for day in resp.json()["weekDays"]
-        ]
+        return resp.json()
