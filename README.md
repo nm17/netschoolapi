@@ -9,7 +9,7 @@
   </a>
 </p> 
 
-[![HitCount](http://hits.dwyl.io/nm17/netschoolapi.svg)](http://hits.dwyl.io/nm17/netschoolapi)
+[![HitCount](http://hits.dwyl.io/nm17/netschoolapi.svg)](http://hits.dwyl.io/nm17/netschoolapi) [![Downloads](https://pepy.tech/badge/netschoolapi)](https://pepy.tech/project/netschoolapi)
 
 > Полностью асинхронный API клиент для "Сетевой Город. Образование" написанный на Python
 
