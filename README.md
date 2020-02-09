@@ -1,6 +1,6 @@
 <h1 align="center">Добро пожаловать в NetSchool API 👋</h1>
 <p>
-  <img alt="Version" src="https://img.shields.io/badge/version-0.1.0-blue.svg?cacheSeconds=2592000" />
+  <img alt="Version" src="https://img.shields.io/badge/version-1.1.0-blue.svg?cacheSeconds=2592000" />
   <a href="https://netschoolapi.readthedocs.org" target="_blank">
     <img alt="Documentation" src="https://img.shields.io/badge/documentation-readthedocs.org-green.svg" />
   </a>
