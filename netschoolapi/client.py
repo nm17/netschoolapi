@@ -6,7 +6,11 @@ from typing import Optional
 import httpx
 
 from netschoolapi.data import Lesson
-from netschoolapi.exceptions import WrongCredentialsError, RateLimitingError, UnknownServerError
+from netschoolapi.exceptions import (
+    WrongCredentialsError,
+    RateLimitingError,
+    UnknownServerError,
+)
 from netschoolapi.utils import LoginForm
 
 
@@ -30,7 +34,7 @@ class NetSchoolAPI:
         async with self.session:
             await self.session.get(self.url)
 
-            resp = await self.session.post(self.url + "/webapi/auth/getdata", data=b' ')
+            resp = await self.session.post(self.url + "/webapi/auth/getdata", data=b" ")
             data = resp.json()
             lt, ver, salt = data["lt"], data["ver"], data["salt"]
 
@@ -39,7 +43,8 @@ class NetSchoolAPI:
 
             pw2 = hashlib.new(
                 "md5",
-                salt.encode() + hashlib.new("md5", password.encode()).hexdigest().encode(),
+                salt.encode()
+                + hashlib.new("md5", password.encode()).hexdigest().encode(),
             ).hexdigest()
             pw = pw2[: len(password)]
 
@@ -62,14 +67,22 @@ class NetSchoolAPI:
             except KeyError as err:
                 error_message = resp.json()["message"]
                 # noinspection GrazieInspection
-                if "Следующая попытка может быть совершена не ранее чем" in error_message:
-                    raise RateLimitingError("Rate limited by the server. Try again later.") from err
+                if (
+                    "Следующая попытка может быть совершена не ранее чем"
+                    in error_message
+                ):
+                    raise RateLimitingError(
+                        "Rate limited by the server. Try again later."
+                    ) from err
                 elif "Неправильный пароль" in error_message:
-                    raise WrongCredentialsError("Incorrect credentials provided.") from err
+                    raise WrongCredentialsError(
+                        "Incorrect credentials provided."
+                    ) from err
                 else:
                     raise UnknownServerError("message: " + error_message)
             resp = await self.session.post(
-                self.url + "/angular/school/studentdiary/", data={"AT": self.at, "VER": ver}
+                self.url + "/angular/school/studentdiary/",
+                data={"AT": self.at, "VER": ver},
             )
             self.user_id = (
                 int(re.search(r'userId = "(\d+)"', resp.text, re.U).group(1)) - 2
@@ -97,3 +110,15 @@ class NetSchoolAPI:
                 headers={"at": self.at},
             )
         return resp.json()
+
+    async def logout(self):
+        """
+        Выходит из данной сессии
+        """
+        async with self.session:
+            await self.session.post(
+                self.url + "/asp/logout.asp",
+                params={"at": self.at, "VER": int(datetime.now().timestamp()) * 100},
+                data={},
+            )
+            # https://developer.mozilla.org/ru/docs/Web/JavaScript/Reference/Global_Objects/Date/getTime
