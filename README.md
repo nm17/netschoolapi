@@ -1,15 +1,8 @@
 <h1 align="center">Добро пожаловать в NetSchool API 👋</h1>
-<p>
-  <img alt="Version" src="https://img.shields.io/badge/version-1.1.0-blue.svg?cacheSeconds=2592000" />
-  <a href="https://netschoolapi.readthedocs.org" target="_blank">
-    <img alt="Documentation" src="https://img.shields.io/badge/documentation-readthedocs.org-green.svg" />
-  </a>
-  <a href="https://opensource.org/licenses/MIT" target="_blank">
-    <img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-yellow.svg" />
-  </a>
-</p> 
 
-[![HitCount](http://hits.dwyl.io/nm17/netschoolapi.svg)](http://hits.dwyl.io/nm17/netschoolapi) [![Downloads](https://pepy.tech/badge/netschoolapi)](https://pepy.tech/project/netschoolapi)
+![GitHub release (latest by date)](https://img.shields.io/github/v/release/nm17/netschoolapi) ![GitHub](https://img.shields.io/github/license/nm17/netschoolapi) [![HitCount](http://hits.dwyl.io/nm17/netschoolapi.svg)](http://hits.dwyl.io/nm17/netschoolapi) [![Downloads](https://pepy.tech/badge/netschoolapi)](https://pepy.tech/project/netschoolapi) ![Read the Docs](https://img.shields.io/readthedocs/netschoolapi)
+
+
 
 > Полностью асинхронный API клиент для "Сетевой Город. Образование" написанный на Python
 
