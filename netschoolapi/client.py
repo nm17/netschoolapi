@@ -5,7 +5,6 @@ from typing import Optional
 
 import httpx
 
-from netschoolapi.data import Lesson
 from netschoolapi.exceptions import (
     WrongCredentialsError,
     RateLimitingError,
@@ -30,7 +29,7 @@ class NetSchoolAPI:
         login_data = LoginForm(url=self.url)
         return list(map(lambda a: a["name"], (await login_data.login_form_data)[for_]))
 
-    async def login(self, login: str, password: str, school: str):
+    async def login(self, login: str, password: str, school: str, city: Optional[str] = None, oo: Optional[str] = None):
         async with self.session:
             await self.session.get(self.url)
 
@@ -39,7 +38,7 @@ class NetSchoolAPI:
             lt, ver, salt = data["lt"], data["ver"], data["salt"]
 
             login_data = LoginForm(url=self.url)
-            await login_data.get_login_data(school=school)
+            await login_data.get_login_data(school=school, city=city, func=oo)
 
             pw2 = hashlib.new(
                 "md5",
