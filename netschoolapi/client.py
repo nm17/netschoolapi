@@ -3,7 +3,9 @@ import re
 from datetime import datetime, timedelta
 from typing import Optional
 
+import dateutil
 import httpx
+import pandas as pd
 
 from netschoolapi.exceptions import (
     WrongCredentialsError,
@@ -29,7 +31,14 @@ class NetSchoolAPI:
         login_data = LoginForm(url=self.url)
         return list(map(lambda a: a["name"], (await login_data.login_form_data)[for_]))
 
-    async def login(self, login: str, password: str, school: str, city: Optional[str] = None, oo: Optional[str] = None):
+    async def login(
+        self,
+        login: str,
+        password: str,
+        school: str,
+        city: Optional[str] = None,
+        oo: Optional[str] = None,
+    ):
         async with self.session:
             await self.session.get(self.url)
 
@@ -92,6 +101,12 @@ class NetSchoolAPI:
     async def get_diary(
         self, week_start: Optional[datetime] = None, week_end: Optional[datetime] = None
     ):
+        """
+        Получает данные дневника с сервера
+        :param week_start: начало недели
+        :param week_end: конец недели
+        :return: Ответ сервера в json
+        """
         if week_start is None:
             week_start = datetime.now() - timedelta(days=7)
         if week_end is None:
@@ -109,6 +124,42 @@ class NetSchoolAPI:
                 headers={"at": self.at},
             )
         return resp.json()
+
+    async def get_diary_df(
+        self, week_start: Optional[datetime] = None, week_end: Optional[datetime] = None
+    ):
+        """
+        Получает данные дневника с сервера как таблицу pandas
+        :param week_start: начало недели
+        :param week_end: конец недели
+        :return: Ответ сервера как таблица pandas
+        """
+        resp = await self.get_diary(week_start, week_end)
+        df = pd.DataFrame()
+
+        for day in resp["weekDays"]:
+            date = dateutil.parser.parse(day["date"]).weekday()
+            for lesson in day["lessons"]:
+                try:
+                    hw = lesson["assignments"][0]["assignmentName"]
+                    mark = lesson["assignments"][0]["mark"]
+                except KeyError:
+                    hw = None
+                    mark = None
+                subject = lesson["subjectName"]
+                room = [int(s) for s in lesson["room"].split("/") if s.isdigit()][0]
+                df = df.append(
+                    {
+                        "Date": date,
+                        "Homework": hw,
+                        "Subject": subject,
+                        "Mark": mark,
+                        "Room": room,
+                    },
+                    ignore_index=True,
+                )
+        df = df.set_index("Date")
+        return df
 
     async def logout(self):
         """
