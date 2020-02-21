@@ -1,6 +1,6 @@
 <h1 align="center">Добро пожаловать в NetSchool API 👋</h1>
 
-![GitHub release (latest by date)](https://img.shields.io/github/v/release/nm17/netschoolapi) ![GitHub](https://img.shields.io/github/license/nm17/netschoolapi) [![HitCount](http://hits.dwyl.io/nm17/netschoolapi.svg)](http://hits.dwyl.io/nm17/netschoolapi) [![Downloads](https://pepy.tech/badge/netschoolapi)](https://pepy.tech/project/netschoolapi) [![Read the Docs](https://img.shields.io/readthedocs/netschoolapi)](https://netschoolapi.readthedocs.io/ru/latest/)
+![GitHub release (latest by date)](https://img.shields.io/github/v/release/nm17/netschoolapi) ![GitHub](https://img.shields.io/github/license/nm17/netschoolapi) [![HitCount](http://hits.dwyl.io/nm17/netschoolapi.svg)](http://hits.dwyl.io/nm17/netschoolapi) [![Downloads](https://pepy.tech/badge/netschoolapi)](https://pepy.tech/project/netschoolapi) [![Read the Docs](https://img.shields.io/readthedocs/netschoolapi)](https://netschoolapi.readthedocs.io/ru/latest/) [![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/3675/badge)](https://bestpractices.coreinfrastructure.org/projects/3675)
 
 
 
