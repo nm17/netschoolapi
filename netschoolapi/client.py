@@ -142,9 +142,12 @@ class NetSchoolAPI:
             for lesson in day["lessons"]:
                 try:
                     hw = lesson["assignments"][0]["assignmentName"]
-                    mark = lesson["assignments"][0]["mark"]
                 except KeyError:
                     hw = None
+                try:
+                    mark = lesson["assignments"][0]["mark"]["mark"]
+                    print(mark)
+                except (KeyError, TypeError):
                     mark = None
                 subject = lesson["subjectName"]
                 room = [int(s) for s in lesson["room"].split("/") if s.isdigit()][0]
