@@ -29,5 +29,5 @@ pip install netschoolapi
 
 ## 📝Лицензия
 
-Copyright © 2019 [Даниил Николаев](https://github.com/nm17).<br />
+Copyright © 2020 [Даниил Николаев](https://github.com/nm17).<br />
 Этот проект использует [MIT](https://mit-license.org/) лицензию.
