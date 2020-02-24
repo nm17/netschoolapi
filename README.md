@@ -16,6 +16,7 @@ pip install netschoolapi
 👤 **Даниил Николаев**
 
 * Github: [@nm17](https://github.com/nm17)
+* ***Telegram***: [@nvrm17](https://teleg.run/nvrm17)
 
 ## 🤝Вклады в проект
 
