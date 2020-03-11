@@ -93,7 +93,7 @@ class NetSchoolAPI:
                 data={"AT": self.at, "VER": ver},
             )
             self.user_id = (
-                int(re.search(r'userId = "(\d+)"', resp.text, re.U).group(1)) - 2
+                int(re.search(r'userId = (\d+)', resp.text, re.U).group(1)) - 2
             )  # TODO: Investigate this
             self.year_id = int(re.search(r'yearId = "(\d+)"', resp.text, re.U).group(1))
             self.logged_in = True
