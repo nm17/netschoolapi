@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name="netschoolapi",
-    version="1.4.2",
+    version="1.4.3",
     packages=["netschoolapi"],
     url="https://github.com/nm17/netschoolapi/",
     license="MIT",
