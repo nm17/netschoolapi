@@ -1,5 +1,6 @@
+from dataclasses import dataclass
 from datetime import datetime, time
-from typing import NamedTuple
+from typing import NamedTuple, List
 
 
 class Lesson(NamedTuple):
@@ -23,3 +24,28 @@ class Lesson(NamedTuple):
         lesson = lesson._replace(end_time=data["endTime"])
         lesson = lesson._replace(subject_name=data["subjectName"])
         return lesson
+
+
+@dataclass
+class Attachment:
+    id: int
+    name: str
+    originalFileName: str
+
+
+@dataclass
+class User:
+    id: int
+    fio: str
+    nickName: str
+
+
+@dataclass
+class Announcement:
+    description: str
+    author: User
+    attachments: List[Attachment]
+    id: int
+    name: str
+    em = None
+    recipientInfo = None

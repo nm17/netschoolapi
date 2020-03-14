@@ -6,7 +6,9 @@ from typing import Optional
 import dateutil
 import httpx
 import pandas as pd
+import dacite
 
+from netschoolapi.data import Announcement
 from netschoolapi.exceptions import (
     WrongCredentialsError,
     RateLimitingError,
@@ -52,7 +54,9 @@ class NetSchoolAPI:
             pw2 = hashlib.new(
                 "md5",
                 salt.encode()
-                + hashlib.new("md5", password.encode("windows-1251")).hexdigest().encode(),
+                + hashlib.new("md5", password.encode("windows-1251"))
+                .hexdigest()
+                .encode(),
             ).hexdigest()
             pw = pw2[: len(password)]
 
@@ -93,10 +97,12 @@ class NetSchoolAPI:
                 data={"AT": self.at, "VER": ver},
             )
             self.user_id = (
-                int(re.search(r'userId = (\d+)', resp.text, re.U).group(1)) - 2
+                int(re.search(r"userId = (\d+)", resp.text, re.U).group(1)) - 2
             )  # TODO: Investigate this
             self.year_id = int(re.search(r'yearId = "(\d+)"', resp.text, re.U).group(1))
             self.logged_in = True
+
+            self.session.headers["at"] = self.at
 
     async def get_diary(
         self, week_start: Optional[datetime] = None, week_end: Optional[datetime] = None
@@ -163,6 +169,15 @@ class NetSchoolAPI:
                 )
         df = df.set_index("Date")
         return df
+
+    async def get_announcements(self):
+        async with self.session:
+            return [
+                dacite.from_dict(Announcement, a)
+                for a in (
+                    await self.session.get(f"{self.url}/webapi/announcements?take=-1")
+                ).json()
+            ]
 
     async def logout(self):
         """
