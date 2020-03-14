@@ -52,7 +52,7 @@ class NetSchoolAPI:
             pw2 = hashlib.new(
                 "md5",
                 salt.encode()
-                + hashlib.new("md5", password.encode()).hexdigest().encode(),
+                + hashlib.new("md5", password.encode("windows-1251")).hexdigest().encode(),
             ).hexdigest()
             pw = pw2[: len(password)]
 
