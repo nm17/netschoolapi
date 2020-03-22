@@ -1,59 +1,53 @@
 # -*- coding: utf-8 -*-
 
-"""Ошибки."""
+"""Ошибки, которые могут выбрасываться в ходе работы."""
+
+from http import HTTPStatus
 
 
 class ResponseError(Exception):
-    def __init__(self, status: int, reason: str, message: str) -> None:
-        """Ошибка ответа сервера.
+    def __init__(self, status: int, message: str) -> None:
+        """Ошибка, возвращаемая сервером.
 
         Arguments:
-            status (int) : статус ошибки сервера
-            reason (str) : пояснение статуса ошибки
-            message (str) : сообщение ошибки
+            status (int) : код ошибки.
+            message (str) : текст ошибки.
         """
-        self._message = '<{0}> ({1}) : {2}'.format(status, reason, message)
+        # noinspection PyArgumentList
+        self._message = '<{0}> ({1}) : {2}'.format(
+            status,  # код ошибки
+            HTTPStatus(status).phrase,  # пояснение кода ошибки
+            message,  # текст ошибки
+        )
 
     def __str__(self) -> str:
-        """Возвращает сообщение об ошибке.
+        """Метод, возвращающий сообщение об ошибке.
 
         Returns:
-            (str) : сообщение об ошибке
+            (str) : '<код ответа> (пояснение кода ответа) : текст ошибки'
+
+        Examples:
+            >>> raise ResponseError(409, 'Ошибка входа в систему.')
+            Traceback (most recent call last):
+              ...
+            utilities.exceptions.ResponseError: <409> (Conflict) : Ошибка входа в систему.
         """
         return self._message
 
 
 class LoginformError(Exception):
     def __init__(self, option: str) -> None:
-        """Ошибка указания положения школы?.
+        """Ошибка, возникающая при указании неверного адреса школы.
 
         Arguments:
-            option (str) : как это назвать?
+            option (str) : неверная опция.
         """
-        self._message = '\"{0}\" is a invalid loginform option'.format(option)
+        self._message = r'\'{0}\' is an invalid loginform option.'.format(option)
 
     def __str__(self) -> str:
-        """Возвращает сообщение об ошибке.
+        r"""Метод, возвращающий сообщение об ошибке.
 
         Returns:
-            (str) : сообщение об ошибке
-        """
-        return self._message
-
-
-class UnknownError(Exception):
-    def __init__(self, message: str) -> None:
-        """Неизвестная ошибка.
-
-        Arguments:
-            message (str) : текст ошибки
-        """
-        self._message = 'Unknown error was occurred: \"{0}\"'.format(message)
-
-    def __str__(self) -> str:
-        """Возвращает сообщение об ошибке.
-
-        Returns:
-            (str) : сообщение об ошибке
+            (str) : '\'неверная опция\'' is an invalid loginform option.'
         """
         return self._message
