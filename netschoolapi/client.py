@@ -3,9 +3,8 @@ import re
 from datetime import datetime, timedelta
 from typing import Optional
 
-import dateutil
+import dateutil.parser
 import httpx
-import pandas as pd
 import dacite
 
 from netschoolapi.data import Announcement
@@ -140,6 +139,10 @@ class NetSchoolAPI:
         :param week_end: конец недели
         :return: Ответ сервера как таблица pandas
         """
+        try:
+            import pandas as pd
+        except ImportError as err:
+            raise ModuleNotFoundError("Pandas not installed. Install netschoolapi[tables].") from err
         resp = await self.get_diary(week_start, week_end)
         df = pd.DataFrame()
 
