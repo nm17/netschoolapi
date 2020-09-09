@@ -28,17 +28,17 @@ class NetSchoolAPI:
     def __init__(self, url):
         self.url = url.rstrip("/")
 
-    async def get_form_data(self, for_: Optional[str] = "schools"):
-        login_data = LoginForm(url=self.url)
-        return list(map(lambda a: a["name"], (await login_data.login_form_data)[for_]))
-
     async def login(
         self,
         login: str,
         password: str,
-        school: str,
+        login_form: Optional[LoginForm] = None,
+        school: Optional[str] = None,
+        country: Optional[str] = None,
+        func: Optional[str] = None,
+        province: Optional[str] = None,
+        state: Optional[str] = None,
         city: Optional[str] = None,
-        oo: Optional[str] = None,
     ):
         async with self.session:
             await self.session.get(self.url)
@@ -47,8 +47,16 @@ class NetSchoolAPI:
             data = resp.json()
             lt, ver, salt = data["lt"], data["ver"], data["salt"]
 
-            login_data = LoginForm(url=self.url)
-            await login_data.get_login_data(school=school, city=city, func=oo)
+            if login_form is None:
+                login_data = LoginForm(url=self.url)
+                await login_data.get_login_data(
+                    school=school,
+                    city=city,
+                    func=func,
+                    country=country,
+                    state=state,
+                    province=province,
+                )
 
             pw2 = hashlib.new(
                 "md5",
@@ -61,7 +69,7 @@ class NetSchoolAPI:
 
             data = {
                 "LoginType": "1",
-                **login_data.__dict__,
+                **login_data.request_params,
                 "UN": login,
                 "PW": pw,
                 "lt": lt,
@@ -142,7 +150,9 @@ class NetSchoolAPI:
         try:
             import pandas as pd
         except ImportError as err:
-            raise ModuleNotFoundError("Pandas not installed. Install netschoolapi[tables].") from err
+            raise ModuleNotFoundError(
+                "Pandas not installed. Install netschoolapi[tables]."
+            ) from err
         resp = await self.get_diary(week_start, week_end)
         df = pd.DataFrame()
 
