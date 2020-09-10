@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from datetime import datetime, time
-from typing import NamedTuple, List
+from typing import List
 
 
 @dataclass

@@ -1,4 +1,4 @@
-from netschoolapi.utils import LoginForm
+from netschoolapi.login_form import LoginForm
 import asyncio
 
 # Тест нового /webapi/loginform , спасибо dsolmann за то что помог мне разобраться с ним.

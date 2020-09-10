@@ -3,9 +3,9 @@ import re
 from datetime import datetime, timedelta
 from typing import Optional
 
+import dacite
 import dateutil.parser
 import httpx
-import dacite
 
 from netschoolapi.data import Announcement
 from netschoolapi.exceptions import (
@@ -13,7 +13,8 @@ from netschoolapi.exceptions import (
     RateLimitingError,
     UnknownServerError,
 )
-from netschoolapi.utils import LoginForm
+from netschoolapi.login_form import LoginForm
+from netschoolapi.utils import get_user_agent
 
 
 class NetSchoolAPI:
@@ -103,11 +104,13 @@ class NetSchoolAPI:
                 self.url + "/angular/school/studentdiary/",
                 data={"AT": self.at, "VER": ver},
             )
-            self.user_id = (
-                int(re.search(r"userId = (\d+)", resp.text, re.U).group(1)) - 2
-            )  # TODO: Investigate this
+            self.user_id = int(
+                re.search(r"userId = (\d+)", resp.text, re.U).group(1)
+            )  # Note to self: the -2 thing seems to be fixed.
             self.year_id = int(re.search(r'yearId = "(\d+)"', resp.text, re.U).group(1))
             self.logged_in = True
+
+            self.session.headers["User-Agent"] = get_user_agent()
 
             self.session.headers["at"] = self.at
 
