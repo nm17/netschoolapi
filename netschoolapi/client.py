@@ -49,7 +49,7 @@ class NetSchoolAPI:
 
             if login_form is None:
                 login_data = LoginForm(url=self.url)
-                await login_data.get_login_data(
+                await login_data.get_login_form(
                     school=school,
                     city=city,
                     func=func,
