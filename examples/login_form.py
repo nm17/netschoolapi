@@ -1,5 +1,5 @@
 from netschoolapi.login_form import LoginForm
-import asyncio
+import trio
 
 # Тест нового /webapi/loginform , спасибо dsolmann за то что помог мне разобраться с ним.
 
@@ -9,14 +9,14 @@ async def main():
 
     lf = LoginForm(url)
 
-    await lf.get_login_form(
+    result = await lf.get_login_form(
         state="Калужская обл",
         province="Людиновский район",
         city="Букань, с.",
         func="Общеобразовательная",
     )
 
-    assert lf.request_params == {
+    assert result == {
         "CID": 2,
         "SID": 122,
         "PID": 36,
@@ -24,7 +24,7 @@ async def main():
         "SFT": 2,
         "SCID": 149,
     }
-    print(lf.request_params)
+    print(result)
 
 
-asyncio.run(main())
+trio.run(main)

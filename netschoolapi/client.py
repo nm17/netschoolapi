@@ -7,33 +7,32 @@ import dacite
 import dateutil.parser
 import httpx
 
-from netschoolapi.data import Announcement
-from netschoolapi.exceptions import (
+from .data import Announcement
+from .exceptions import (
     WrongCredentialsError,
     RateLimitingError,
     UnknownServerError,
 )
-from netschoolapi.login_form import LoginForm
-from netschoolapi.utils import get_user_agent
+from .login_form import LoginForm
+from .utils import get_user_agent
 
 
 class NetSchoolAPI:
-    at: str = None
-    esrn_sec: str = None
-    user_id: int = None
-    year_id: int = None
-    logged_in = False
-
-    session = httpx.AsyncClient()
 
     def __init__(self, url):
+        self.at: str = None
+        self.esrn_sec: str = None
+        self.user_id: int = None
+        self.year_id: int = None
+        self.session = httpx.AsyncClient()
         self.url = url.rstrip("/")
 
     async def login(
         self,
         login: str,
         password: str,
-        login_form: Optional[LoginForm] = None,
+        *,
+        login_form_data: Optional[LoginForm] = None,
         school: Optional[str] = None,
         country: Optional[str] = None,
         func: Optional[str] = None,
@@ -41,16 +40,16 @@ class NetSchoolAPI:
         state: Optional[str] = None,
         city: Optional[str] = None,
     ):
-        async with self.session:
-            await self.session.get(self.url)
+        async with self.session as s:
+            await s.get(self.url)
 
-            resp = await self.session.post(self.url + "/webapi/auth/getdata", data=b" ")
+            resp = await s.post(self.url + "/webapi/auth/getdata", data=b" ")
             data = resp.json()
             lt, ver, salt = data["lt"], data["ver"], data["salt"]
 
-            if login_form is None:
-                login_data = LoginForm(url=self.url)
-                await login_data.get_login_form(
+            if login_form_data is None:
+                lf = LoginForm(url=self.url)
+                login_form_data = await lf.get_login_form(
                     school=school,
                     city=city,
                     func=func,
@@ -59,63 +58,56 @@ class NetSchoolAPI:
                     province=province,
                 )
 
-            pw2 = hashlib.new(
-                "md5",
-                salt.encode()
-                + hashlib.new("md5", password.encode("windows-1251"))
-                .hexdigest()
-                .encode(),
-            ).hexdigest()
+            encoded_pw = hashlib.md5(password.encode("windows-1251")).hexdigest().encode()
+            pw2 = hashlib.md5(salt.encode() + encoded_pw).hexdigest()
             pw = pw2[: len(password)]
 
             data = {
                 "LoginType": "1",
-                **login_data.request_params,
+                **login_form_data,
                 "UN": login,
                 "PW": pw,
                 "lt": lt,
                 "pw2": pw2,
                 "ver": ver,
             }
-            resp = await self.session.post(
+
+            resp = await s.post(
                 self.url + "/webapi/login",
                 data=data,
                 headers={"Referer": self.url + "/about.html"},  # Referer REQUIRED
             )
+
             try:
                 self.at = resp.json()["at"]
+
             except KeyError as err:
+
                 error_message = resp.json()["message"]
                 # noinspection GrazieInspection
-                if (
-                    "Следующая попытка может быть совершена не ранее чем"
-                    in error_message
-                ):
-                    raise RateLimitingError(
-                        "Rate limited by the server. Try again later."
-                    ) from err
+                if "Следующая попытка может быть совершена не ранее чем" in error_message:
+                    raise RateLimitingError("Rate limited by the server. Try again later.") from err
                 elif "Неправильный пароль" in error_message:
-                    raise WrongCredentialsError(
-                        "Incorrect credentials provided."
-                    ) from err
+                    raise WrongCredentialsError("Incorrect credentials provided.") from err
                 else:
                     raise UnknownServerError("message: " + error_message)
-            resp = await self.session.post(
+
+            resp = await s.post(
                 self.url + "/angular/school/studentdiary/",
                 data={"AT": self.at, "VER": ver},
             )
+
             self.user_id = int(
                 re.search(r"userId = (\d+)", resp.text, re.U).group(1)
             )  # Note to self: the -2 thing seems to be fixed.
+
             self.year_id = int(re.search(r'yearId = "(\d+)"', resp.text, re.U).group(1))
-            self.logged_in = True
-
             self.session.headers["User-Agent"] = get_user_agent()
-
             self.session.headers["at"] = self.at
 
     async def get_diary(
-        self, week_start: Optional[datetime] = None, week_end: Optional[datetime] = None
+        self,
+        week_start: Optional[datetime] = None, week_end: Optional[datetime] = None
     ):
         """
         Получает данные дневника с сервера
@@ -127,8 +119,10 @@ class NetSchoolAPI:
             week_start = datetime.now() - timedelta(days=7)
         if week_end is None:
             week_end = datetime.now()
-        async with self.session:
-            resp = await self.session.get(
+
+        async with self.session as s:
+
+            resp = await s.get(
                 self.url + "/webapi/student/diary",
                 params={
                     "studentId": self.user_id,
@@ -139,10 +133,13 @@ class NetSchoolAPI:
                 },
                 headers={"at": self.at},
             )
+
         return resp.json()
 
     async def get_diary_df(
-        self, week_start: Optional[datetime] = None, week_end: Optional[datetime] = None
+        self,
+        week_start: Optional[datetime] = None,
+        week_end: Optional[datetime] = None
     ):
         """
         Получает данные дневника с сервера как таблицу pandas
@@ -153,26 +150,30 @@ class NetSchoolAPI:
         try:
             import pandas as pd
         except ImportError as err:
-            raise ModuleNotFoundError(
-                "Pandas not installed. Install netschoolapi[tables]."
-            ) from err
+            raise ModuleNotFoundError("Pandas not installed. Install netschoolapi[tables].") from err
+
         resp = await self.get_diary(week_start, week_end)
         df = pd.DataFrame()
 
         for day in resp["weekDays"]:
             date = dateutil.parser.parse(day["date"]).weekday()
+
             for lesson in day["lessons"]:
+
                 try:
                     hw = lesson["assignments"][0]["assignmentName"]
                 except KeyError:
                     hw = None
+
                 try:
                     mark = lesson["assignments"][0]["mark"]["mark"]
                     print(mark)
                 except (KeyError, TypeError):
                     mark = None
+
                 subject = lesson["subjectName"]
                 room = [int(s) for s in lesson["room"].split("/") if s.isdigit()][0]
+
                 df = df.append(
                     {
                         "Date": date,
@@ -183,26 +184,31 @@ class NetSchoolAPI:
                     },
                     ignore_index=True,
                 )
+
         df = df.set_index("Date")
         return df
 
     async def get_announcements(self):
-        async with self.session:
+        async with self.session as s:
             return [
                 dacite.from_dict(Announcement, a)
-                for a in (
-                    await self.session.get(f"{self.url}/webapi/announcements?take=-1")
-                ).json()
+                for a in (await s.get(f"{self.url}/webapi/announcements?take=-1")).json()
             ]
+
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        await self.logout()
 
     async def logout(self):
         """
         Выходит из данной сессии
         """
-        async with self.session:
-            await self.session.post(
+        async with self.session as s:
+            await s.post(
                 self.url + "/asp/logout.asp",
                 params={"at": self.at, "VER": int(datetime.now().timestamp()) * 100},
                 data={},
             )
-            # https://developer.mozilla.org/ru/docs/Web/JavaScript/Reference/Global_Objects/Date/getTime
+

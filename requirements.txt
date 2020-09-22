@@ -1,0 +1,6 @@
+trio
+setuptools
+dacite
+python-dateutil
+httpx
+pandas
