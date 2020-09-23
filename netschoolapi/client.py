@@ -17,6 +17,10 @@ from .login_form import LoginForm
 from .utils import get_user_agent
 
 
+def weekday():
+    return datetime.today().weekday() + 1
+
+
 class NetSchoolAPI:
 
     def __init__(self, url):
@@ -113,9 +117,9 @@ class NetSchoolAPI:
         :return: Ответ сервера в json
         """
         if week_start is None:
-            week_start = datetime.now() - timedelta(days=7)
+            week_start = datetime.now() - timedelta(days=weekday() - 1)
         if week_end is None:
-            week_end = datetime.now()
+            week_end = datetime.now() + timedelta(days=(6 - weekday()))
 
         async with self.session as s:
 
