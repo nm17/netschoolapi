@@ -40,10 +40,10 @@ class NetSchoolAPI:
         state: Optional[str] = None,
         city: Optional[str] = None,
     ):
-        async with self.session as s:
-            await s.get(self.url)
+        async with self.session as session:
+            await session.get(self.url)
 
-            resp = await s.post(self.url + "/webapi/auth/getdata", data=b" ")
+            resp = await session.post(self.url + "/webapi/auth/getdata", data=b" ")
             data = resp.json()
             lt, ver, salt = data["lt"], data["ver"], data["salt"]
 
@@ -72,7 +72,7 @@ class NetSchoolAPI:
                 "ver": ver,
             }
 
-            resp = await s.post(
+            resp = await session.post(
                 self.url + "/webapi/login",
                 data=data,
                 headers={"Referer": self.url + "/about.html"},  # Referer REQUIRED
@@ -92,7 +92,7 @@ class NetSchoolAPI:
                 else:
                     raise UnknownServerError("message: " + error_message)
 
-            resp = await s.post(
+            resp = await session.post(
                 self.url + "/angular/school/studentdiary/",
                 data={"AT": self.at, "VER": ver},
             )
@@ -105,10 +105,7 @@ class NetSchoolAPI:
             self.session.headers["User-Agent"] = get_user_agent()
             self.session.headers["at"] = self.at
 
-    async def get_diary(
-        self,
-        week_start: Optional[datetime] = None, week_end: Optional[datetime] = None
-    ):
+    async def get_diary(self, week_start: Optional[datetime] = None, week_end: Optional[datetime] = None):
         """
         Получает данные дневника с сервера
         :param week_start: начало недели
@@ -136,11 +133,7 @@ class NetSchoolAPI:
 
         return resp.json()
 
-    async def get_diary_df(
-        self,
-        week_start: Optional[datetime] = None,
-        week_end: Optional[datetime] = None
-    ):
+    async def get_diary_df(self, week_start: Optional[datetime] = None, week_end: Optional[datetime] = None):
         """
         Получает данные дневника с сервера как таблицу pandas
         :param week_start: начало недели
@@ -189,10 +182,10 @@ class NetSchoolAPI:
         return df
 
     async def get_announcements(self):
-        async with self.session as s:
+        async with self.session as session:
             return [
-                dacite.from_dict(Announcement, a)
-                for a in (await s.get(f"{self.url}/webapi/announcements?take=-1")).json()
+                dacite.from_dict(Announcement, announcement)
+                for announcement in (await session.get(f"{self.url}/webapi/announcements?take=-1")).json()
             ]
 
     async def __aenter__(self):
@@ -205,8 +198,8 @@ class NetSchoolAPI:
         """
         Выходит из данной сессии
         """
-        async with self.session as s:
-            await s.post(
+        async with self.session as session:
+            await session.post(
                 self.url + "/asp/logout.asp",
                 params={"at": self.at, "VER": int(datetime.now().timestamp()) * 100},
                 data={},

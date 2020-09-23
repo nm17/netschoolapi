@@ -12,7 +12,7 @@ LOGIN_FORM_QUEUE = {
 }
 
 ALL_LOGIN_KWARGS = {ALL_LOGIN_ARGS[i[0]]: i[1] for i in enumerate(LOGIN_FORM_QUEUE.keys())}
-# Должен получится словарь такой -> {"country": "countries", "state": "states", "province": "provinces", ... }
+# Должен получится такой словарь -> {"country": "countries", "state": "states", "province": "provinces", ... }
 
 
 class LoginForm:
@@ -49,8 +49,7 @@ class LoginForm:
         """
         Пример должного запроса:
         https://edu.admoblkaluga.ru:444/webapi/loginform?cid=2&sid=122&pid=36&cn=2025&sft=2&LASTNAME=sft
-        :parameter last_keys: это словарь result в get_login_form, типа чтобы отправить запрос
-        надо иметь то что мы имеем
+        :parameter last_keys: это словарь result в get_login_form
         """
         async with self.client as client:
             last_keys = last_keys.copy()
@@ -62,30 +61,30 @@ class LoginForm:
 
     async def get_login_form(self, **login_kwargs):
 
-        prepare_data = await self.get_prepare_form_data()  # Получить списки стран, шатов там т.д и т.п
+        prepare_data = await self.get_prepare_form_data()
 
         result = {}
 
         for k, v in ALL_LOGIN_KWARGS.items():  # Смотрите ALL_LOGIN_KWARGS чтобы понять что мы итерируем...
             if isinstance(login_kwargs.get(k), str):  # получить из login_kwargs k, то бишь country и проверить что у неё тип str
-                data = self.get_prepare_data(prepare_data[v], login_kwargs, k, v)  # Если все ок то получить cid и её id
+                data = self.get_prepare_data(prepare_data[v], login_kwargs, k, v)
 
-                if data is not None:  # Но может быть такое что цикл нихуя не нашел
+                if data is not None:
                     result[data[0]] = data[1]
 
-                else:  # Тогда спасает else
-                    adv_prepare_data = await self.get_login_data(result)  # Получает то что нету в prepare_data
+                else:
+                    adv_prepare_data = await self.get_login_data(result)
                     data = self.get_prepare_data(adv_prepare_data["items"], login_kwargs, k, v)
                     assert data is not None  # Если вышла эта ошибка - вы ошиблись в параметрах функции
                     result[data[0]] = data[1]
 
-            else:  # Если юзер не указал там например school то наверное он подразумевает что оно вставится автоматически...
+            else:
 
                 try:
                     adv_prepare_data = await self.get_login_data(result)
                     result[LOGIN_FORM_QUEUE[v].upper()] = adv_prepare_data["items"][0]["id"]
                 except:
                     login = LOGIN_FORM_QUEUE[v]
-                    result[login.upper()] = prepare_data[login]  # Если все хуйня то вставляем дефолтное значение
+                    result[login.upper()] = prepare_data[login]
 
         return result
