@@ -1,4 +1,4 @@
-import trio
+import asyncio
 
 from netschoolapi import NetSchoolAPI
 
@@ -9,4 +9,5 @@ async def main():
         await api.login("Иван", "Иван228", school="МАОУ многопрофильный лицей №20")
         print(await api.get_announcements())
 
-trio.run(main)
+
+asyncio.run(main())

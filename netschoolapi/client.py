@@ -22,7 +22,6 @@ def weekday():
 
 
 class NetSchoolAPI:
-
     def __init__(self, url):
         self.at: str = None
         self.esrn_sec: str = None
@@ -35,8 +34,7 @@ class NetSchoolAPI:
         self,
         login: str,
         password: str,
-        *,
-        login_form_data: Optional[LoginForm] = None,
+        login_form: Optional[LoginForm] = None,
         school: Optional[str] = None,
         country: Optional[str] = None,
         func: Optional[str] = None,
@@ -51,9 +49,9 @@ class NetSchoolAPI:
             data = resp.json()
             lt, ver, salt = data["lt"], data["ver"], data["salt"]
 
-            if login_form_data is None:
+            if login_form is None:
                 lf = LoginForm(url=self.url)
-                login_form_data = await lf.get_login_form(
+                login_form = await lf.get_login_form(
                     school=school,
                     city=city,
                     func=func,
@@ -62,13 +60,15 @@ class NetSchoolAPI:
                     province=province,
                 )
 
-            encoded_pw = hashlib.md5(password.encode("windows-1251")).hexdigest().encode()
+            encoded_pw = (
+                hashlib.md5(password.encode("windows-1251")).hexdigest().encode()
+            )
             pw2 = hashlib.md5(salt.encode() + encoded_pw).hexdigest()
             pw = pw2[: len(password)]
 
             data = {
                 "LoginType": "1",
-                **login_form_data,
+                **login_form,
                 "UN": login,
                 "PW": pw,
                 "lt": lt,
@@ -89,10 +89,17 @@ class NetSchoolAPI:
 
                 error_message = resp.json()["message"]
                 # noinspection GrazieInspection
-                if "Следующая попытка может быть совершена не ранее чем" in error_message:
-                    raise RateLimitingError("Rate limited by the server. Try again later.") from err
+                if (
+                    "Следующая попытка может быть совершена не ранее чем"
+                    in error_message
+                ):
+                    raise RateLimitingError(
+                        "Rate limited by the server. Try again later."
+                    ) from err
                 elif "Неправильный пароль" in error_message:
-                    raise WrongCredentialsError("Incorrect credentials provided.") from err
+                    raise WrongCredentialsError(
+                        "Incorrect credentials provided."
+                    ) from err
                 else:
                     raise UnknownServerError("message: " + error_message)
 
@@ -109,7 +116,9 @@ class NetSchoolAPI:
             self.session.headers["User-Agent"] = get_user_agent()
             self.session.headers["at"] = self.at
 
-    async def get_diary(self, week_start: Optional[datetime] = None, week_end: Optional[datetime] = None):
+    async def get_diary(
+        self, week_start: Optional[datetime] = None, week_end: Optional[datetime] = None
+    ):
         """
         Получает данные дневника с сервера
         :param week_start: начало недели
@@ -137,7 +146,9 @@ class NetSchoolAPI:
 
         return resp.json()
 
-    async def get_diary_df(self, week_start: Optional[datetime] = None, week_end: Optional[datetime] = None):
+    async def get_diary_df(
+        self, week_start: Optional[datetime] = None, week_end: Optional[datetime] = None
+    ):
         """
         Получает данные дневника с сервера как таблицу pandas
         :param week_start: начало недели
@@ -147,7 +158,9 @@ class NetSchoolAPI:
         try:
             import pandas as pd
         except ImportError as err:
-            raise ModuleNotFoundError("Pandas not installed. Install netschoolapi[tables].") from err
+            raise ModuleNotFoundError(
+                "Pandas not installed. Install netschoolapi[tables]."
+            ) from err
 
         resp = await self.get_diary(week_start, week_end)
         df = pd.DataFrame()
@@ -189,7 +202,9 @@ class NetSchoolAPI:
         async with self.session as session:
             return [
                 dacite.from_dict(Announcement, announcement)
-                for announcement in (await session.get(f"{self.url}/webapi/announcements?take=-1")).json()
+                for announcement in (
+                    await session.get(f"{self.url}/webapi/announcements?take=-1")
+                ).json()
             ]
 
     async def __aenter__(self):
@@ -208,4 +223,3 @@ class NetSchoolAPI:
                 params={"at": self.at, "VER": int(datetime.now().timestamp()) * 100},
                 data={},
             )
-

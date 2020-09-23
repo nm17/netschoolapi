@@ -1,5 +1,5 @@
 from netschoolapi.login_form import LoginForm
-import trio
+import asyncio
 
 # Тест нового /webapi/loginform , спасибо dsolmann за то что помог мне разобраться с ним.
 
@@ -27,4 +27,4 @@ async def main():
     print(result)
 
 
-trio.run(main)
+asyncio.run(main())

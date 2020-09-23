@@ -11,12 +11,13 @@ LOGIN_FORM_QUEUE = {
     "schools": "scid",
 }
 
-ALL_LOGIN_KWARGS = {ALL_LOGIN_ARGS[i[0]]: i[1] for i in enumerate(LOGIN_FORM_QUEUE.keys())}
+ALL_LOGIN_KWARGS = {
+    ALL_LOGIN_ARGS[i[0]]: i[1] for i in enumerate(LOGIN_FORM_QUEUE.keys())
+}
 # Должен получится такой словарь -> {"country": "countries", "state": "states", "province": "provinces", ... }
 
 
 class LoginForm:
-
     def __init__(self, url, client=httpx.AsyncClient()):
         assert isinstance(url, str)
         self.url = url
@@ -65,8 +66,10 @@ class LoginForm:
 
         result = {}
 
-        for k, v in ALL_LOGIN_KWARGS.items():  # Смотрите ALL_LOGIN_KWARGS чтобы понять что мы итерируем...
-            if isinstance(login_kwargs.get(k), str):  # получить из login_kwargs k, то бишь country и проверить что у неё тип str
+        for k, v in ALL_LOGIN_KWARGS.items():
+            # Смотрите ALL_LOGIN_KWARGS чтобы понять что мы итерируем...
+
+            if isinstance(login_kwargs.get(k), str):
                 data = self.get_prepare_data(prepare_data[v], login_kwargs, k, v)
 
                 if data is not None:
@@ -75,7 +78,7 @@ class LoginForm:
                 else:
                     adv_prepare_data = await self.get_login_data(result)
                     data = self.get_prepare_data(adv_prepare_data["items"], login_kwargs, k, v)
-                    assert data is not None  # Если вышла эта ошибка - вы ошиблись в параметрах функции
+                    assert data is not None, "Вы ошиблись в параметрах функции"
                     result[data[0]] = data[1]
 
             else:
