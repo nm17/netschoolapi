@@ -126,7 +126,7 @@ class NetSchoolAPI:
         :return: Ответ сервера в json
         """
         if week_start is None:
-            week_start = datetime.now() - timedelta(days=weekday() - 1)
+            week_start = datetime.now() - timedelta(days=weekday())
         if week_end is None:
             week_end = datetime.now() + timedelta(days=(6 - weekday()))
 
@@ -182,7 +182,11 @@ class NetSchoolAPI:
                     mark = None
 
                 subject = lesson["subjectName"]
-                room = [int(s) for s in lesson["room"].split("/") if s.isdigit()][0]
+
+                if lesson["room"] is not None:
+                    room = [int(s) for s in lesson["room"].split("/") if s.isdigit()][0]
+                else:
+                    room = None
 
                 df = df.append(
                     {
