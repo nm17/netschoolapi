@@ -85,7 +85,12 @@ class LoginForm:
 
                 try:
                     adv_prepare_data = await self.get_login_data(result)
-                    result[LOGIN_FORM_QUEUE[v].upper()] = adv_prepare_data["items"][0]["id"]
+                    if len(adv_prepare_data["items"]) > 1:
+                        login = LOGIN_FORM_QUEUE[v]
+                        result[login.upper()] = prepare_data[login]
+                    else:
+                        result[LOGIN_FORM_QUEUE[v].upper()] = adv_prepare_data["items"][0]["id"]
+
                 except:
                     login = LOGIN_FORM_QUEUE[v]
                     result[login.upper()] = prepare_data[login]
