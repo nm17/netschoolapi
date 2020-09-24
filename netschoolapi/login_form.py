@@ -33,7 +33,7 @@ class LoginForm:
         """
 
         for i in prepare_data:  # Итерируем список на словари -> [{}, ...]
-            if i["name"] == login_kwargs[k]:
+            if login_kwargs[k] in i["name"]:
                 return LOGIN_FORM_QUEUE[v].upper(), i["id"]
 
     async def get_prepare_form_data(self):
