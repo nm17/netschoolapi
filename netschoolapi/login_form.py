@@ -92,7 +92,7 @@ class LoginForm:
                     result[login.upper()] = prepare_data[login]
                     continue
 
-                if len(adv_prepare_data["items"]) > 1:
+                if len(adv_prepare_data["items"]) > 1 or len(adv_prepare_data["items"]) == 0:
                     # Если не достаточно специфичный выбор
                     result[login.upper()] = prepare_data[login]
                 else:
