@@ -1,11 +1,14 @@
 # -*- coding: utf-8 -*-
 
+"""Модуль для получения loginform'ы."""
+
+
 from typing import Dict
 from httpx import AsyncClient, StatusCode
 from .exceptions import UnknownServerError, UnknownLoginData
 
 
-async def __get_prepared_login_form(client: AsyncClient, url: str) -> Dict[str, int]:
+async def _get_prepared_login_form(client: AsyncClient, url: str) -> Dict[str, int]:
     """Получение id страны, id субъекта и тип ОО.
 
     Note:
@@ -15,23 +18,25 @@ async def __get_prepared_login_form(client: AsyncClient, url: str) -> Dict[str, 
         sft -- 2 (общеобразовательная), по умолчанию, т.к. подразумевается,
         что пользователь учится в общеобразовательной школе.
 
-    Argument:
+    Arguments:
+        client: AsyncClient.
         url: str -- сайт СГО.
 
     Returns:
         dict('cid', 'sid', 'sft')
 
     Raises:
-        AssertationError, если запрос неудачный.
+        UnknownServerError, если запрос неудачный.
 
     Examples:
-        >>> await __get_prepared_login_form('https://sgo.cit73.ru/')
+        >>> await _get_prepared_login_form('https://sgo.cit73.ru/')
         {'cid': 2, 'sid': 73, 'sft': 2}
-        >>> await __get_prepared_login_form('https://edu.admoblkaluga.ru/')
+        >>> await _get_prepared_login_form('https://edu.admoblkaluga.ru/')
         {'cid': 2, 'sid': 122, 'sft': 2}
     """
     response = await client.get(f'{url}/webapi/prepareloginform')
-    assert response.status_code == StatusCode.OK, response.json()['message']
+    if response.status_code != StatusCode.OK:
+        raise UnknownServerError(response.json()['message'])
     login_form = response.json()
     return {
         'cid': login_form['cid'],
@@ -96,11 +101,11 @@ async def get_login_form(url: str, province: str, city: str, school: str) -> Dic
     user_form = {'pid': province, 'cn': city, 'scid': school}
 
     async with AsyncClient() as client:
-        login_form = await __get_prepared_login_form(client, url)
+        login_form = await _get_prepared_login_form(client, url)
         for last_name in queue.keys():
             response = await client.get(
                 f'{url}/webapi/loginform',
-                params={**login_form, 'lastname': last_name}
+                params={**login_form, 'lastname': last_name},
             )
             if response.status_code != StatusCode.OK:
                 raise UnknownServerError(response.text)

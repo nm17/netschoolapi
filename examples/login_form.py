@@ -3,6 +3,7 @@
 """Спасибо @dsolmann."""
 
 import asyncio
+
 from netschoolapi.login_form import get_login_form
 
 
