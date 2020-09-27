@@ -1,30 +1,29 @@
-from netschoolapi.login_form import LoginForm
+# -*- coding: utf-8 -*-
+
+"""Спасибо @dsolmann."""
+
 import asyncio
 
-# Тест нового /webapi/loginform , спасибо dsolmann за то что помог мне разобраться с ним.
+from netschoolapi.login_form import get_login_form
 
 
 async def main():
-    url = "https://edu.admoblkaluga.ru:444/"
-
-    lf = LoginForm(url)
-
-    result = await lf.get_login_form(
-        state="Калужская обл",
-        province="Людиновский район",
-        city="Букань, с.",
-        func="Общеобразовательная",
+    login_form = await get_login_form(
+        'https://edu.admoblkaluga.ru:444/',
+        'Людиновский район',
+        'Букань, с.',
+        'МКОУ "Букановская средняя школа"',
     )
-
-    assert result == {
-        "CID": 2,
-        "SID": 122,
-        "PID": 36,
-        "CN": 2025,
-        "SFT": 2,
-        "SCID": 149,
+    assert login_form == {
+        'cid': 2,
+        'sid': 122,
+        'pid': 36,
+        'cn': 2025,
+        'sft': 2,
+        'scid': 149,
     }
-    print(result)
 
 
-asyncio.run(main())
+if __name__ == '__main__':
+    event_loop = asyncio.get_event_loop()
+    event_loop.run_until_complete(main())
