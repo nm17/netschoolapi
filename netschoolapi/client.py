@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 """API Сетевого Города."""
 
 import hashlib
@@ -76,7 +74,7 @@ class NetSchoolAPI:
             response = await session.post(
                 '/webapi/login',
                 data=request,
-                headers={'Referer': '{}/about.html'.format(session.base_url)},
+                headers={'Referer': f'{session.base_url}/about.html'},
             )
 
             try:

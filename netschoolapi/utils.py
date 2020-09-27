@@ -1,11 +1,9 @@
-# -*- coding: utf-8 -*-
-
 import pkg_resources
 import netschoolapi
 
 
 def get_user_agent() -> str:
-    """Возвращает User-Agent, который использует NetSchoolAPI.
+    """User-Agent, используемый NetSchoolAPI.
 
     Returns:
         str -- User-Agent.
