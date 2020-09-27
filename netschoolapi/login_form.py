@@ -55,13 +55,14 @@ class LoginForm:
         async with self.client as client:
             last_keys = last_keys.copy()
             last_keys["LASTNAME"] = list(last_keys.keys())[-1]
-            resp = await client.get(self.url.rstrip("/") + "/webapi/loginform", params=last_keys)
+            resp = await client.get(
+                self.url.rstrip("/") + "/webapi/loginform", params=last_keys
+            )
             assert resp.status_code == 200
 
         return resp.json()
 
     async def get_login_form(self, **login_kwargs):
-
         prepare_data = await self.get_prepare_form_data()
 
         result = {}
@@ -69,30 +70,32 @@ class LoginForm:
         for k, v in ALL_LOGIN_KWARGS.items():
             # Смотрите ALL_LOGIN_KWARGS чтобы понять что мы итерируем...
 
+            login = LOGIN_FORM_QUEUE[v]
+
             if isinstance(login_kwargs.get(k), str):
                 data = self.get_prepare_data(prepare_data[v], login_kwargs, k, v)
 
                 if data is not None:
                     result[data[0]] = data[1]
+                    continue
 
-                else:
-                    adv_prepare_data = await self.get_login_data(result)
-                    data = self.get_prepare_data(adv_prepare_data["items"], login_kwargs, k, v)
-                    assert data is not None, "Вы ошиблись в параметрах функции"
-                    result[data[0]] = data[1]
-
+                adv_prepare_data = await self.get_login_data(result)
+                data = self.get_prepare_data(
+                    adv_prepare_data["items"], login_kwargs, k, v
+                )
+                assert data is not None, "Вы ошиблись в параметрах функции"
+                result[data[0]] = data[1]
             else:
-
                 try:
                     adv_prepare_data = await self.get_login_data(result)
-                    if len(adv_prepare_data["items"]) > 1:
-                        login = LOGIN_FORM_QUEUE[v]
-                        result[login.upper()] = prepare_data[login]
-                    else:
-                        result[LOGIN_FORM_QUEUE[v].upper()] = adv_prepare_data["items"][0]["id"]
-
-                except:
-                    login = LOGIN_FORM_QUEUE[v]
+                except IndexError:
                     result[login.upper()] = prepare_data[login]
+                    continue
+
+                if len(adv_prepare_data["items"]) > 1 or len(adv_prepare_data["items"]) == 0:
+                    # Если не достаточно специфичный выбор
+                    result[login.upper()] = prepare_data[login]
+                else:
+                    result[login.upper()] = adv_prepare_data["items"][0]["id"]
 
         return result

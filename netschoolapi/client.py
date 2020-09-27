@@ -8,11 +8,7 @@ import dateutil.parser
 import httpx
 
 from .data import Announcement
-from .exceptions import (
-    WrongCredentialsError,
-    RateLimitingError,
-    UnknownServerError,
-)
+from .exceptions import WrongCredentialsError, RateLimitingError, UnknownServerError
 from .login_form import LoginForm
 from .utils import get_user_agent
 
