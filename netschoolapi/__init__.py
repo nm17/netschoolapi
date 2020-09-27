@@ -1,4 +1,5 @@
-from .client import NetSchoolAPI
-from .login_form import LoginForm
+# -*- coding: utf-8 -*-
 
-__version__ = "2.0.0"
+from .client import NetSchoolAPI
+
+__version__ = '2.0.0'
