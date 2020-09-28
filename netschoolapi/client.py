@@ -30,14 +30,14 @@ class NetSchoolAPI:
         self._user_id = 0
         self._year_id = 0
 
-    async def login(self, login: str, password: str, city: str, province: str, school: str):
+    async def login(self, login: str, password: str, province: str, city: str, school: str):
         """Выполняет вход в СГО.
 
         Arguments:
             login: str -- логин, использующийся для входа на сайт.
             password: str -- пароль, использующийся для входа.
+            province: str -- округ/район.
             city: str -- город (как на сайте)
-            province: str -- .
             school: str -- название школа (как на сайте).
 
         Raises:
@@ -53,7 +53,7 @@ class NetSchoolAPI:
             json = response.json()
             lt, ver, salt = json['lt'], json['ver'], json['salt']
 
-            login_form = await get_login_form(str(session.base_url), city, province, school)
+            login_form = await get_login_form(str(session.base_url), province, city, school)
 
             encoded_pw = (
                 hashlib.md5(password.encode('windows-1251')).hexdigest().encode()
