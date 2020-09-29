@@ -89,16 +89,12 @@ class NetSchoolAPI:
                     raise WrongCredentialsError(error_message) from error
                 raise UnknownServerError(error_message) from error
 
-            response = await session.post(
-                '/angular/school/studentdiary/',
-                data={'AT': self._at, 'VER': ver},
-            )
+            student = (await session.get('webapi/student/diary/init')).json()['students'][0]
+            self._user_id = student['studentId']
 
-            self._user_id = int(
-                re.search(r'userId = (\d+)', response.text, re.U).group(1),
-            )
+            diary_page = await session.post('/angular/school/studentdiary/', data={'AT': self._at})
             self._year_id = int(
-                re.search(r'yearId = "(\d+)"', response.text, re.U).group(1),
+                re.search(r'yearId = "(\d+)"', diary_page.text, re.U).group(1),
             )
 
     async def get_diary(
@@ -114,9 +110,8 @@ class NetSchoolAPI:
             '/webapi/student/diary',
             params={
                 'studentId': self._user_id,
-                'weekEnd': week_end.isoformat(),
-                'weekStart': week_start.isoformat(),
-                'withLaAssigns': True,
+                'weekStart': week_start.date().isoformat(),
+                'weekEnd': week_end.date().isoformat(),
                 'yearId': self._year_id,
             },
         )
