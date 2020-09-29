@@ -1,16 +1,39 @@
 from dataclasses import dataclass
-from datetime import datetime, time
-from typing import List
+from typing import List, Optional
+
+
+@dataclass
+class Assignment:
+    # FIXME: оддержка оценок
+    mark: Optional[dict]  # Optional[int]
+    typeId: int  # 3 -- ДЗ, 10 -- оценка. Пока всё.
+    assignmentName: str
 
 
 @dataclass
 class Lesson:
-    class_meeting_id: str
-    day: datetime
-    room: str = None
-    start_time: time = None
-    end_time: time = None
-    subject_name: str = None
+    classmeetingId: int
+    day: str
+    number: int
+    # relay: int. Что это значит?
+    room: str
+    startTime: str
+    endTime: str
+    subjectName: str
+    assignments: Optional[List[Assignment]]
+
+
+@dataclass
+class Weekday:
+    date: str
+    lessons: List[Lesson]
+
+
+@dataclass
+class Diary:
+    weekStart: str
+    weekEnd: str
+    weekDays: List[Weekday]
 
 
 @dataclass

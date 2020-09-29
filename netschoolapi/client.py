@@ -9,10 +9,10 @@ import dacite
 from dateutil.parser import parse as parse_date
 from httpx import AsyncClient
 
-from .data import Announcement
+from .data import Announcement, Diary
 from .exceptions import WrongCredentialsError, RateLimitingError, UnknownServerError
 from .login_form import get_login_form
-from .utils import get_user_agent
+from .utils import _get_user_agent
 
 
 class NetSchoolAPI:
@@ -23,7 +23,7 @@ class NetSchoolAPI:
             url: str -- сайт СГО.
         """
         self._client = AsyncClient(base_url=url.rstrip('/'))
-        self._client.headers['User-Agent'] = get_user_agent()
+        self._client.headers['User-Agent'] = _get_user_agent()
 
         self._at = ''
         self._esrn_sec = ''
@@ -47,22 +47,20 @@ class NetSchoolAPI:
             UnknownServerError.
         """
         async with self._client as session:
-            await session.get('/')
+            login_data = (await session.post('/webapi/auth/getdata', data={})).json()
+            lt, ver, salt = login_data['lt'], login_data['ver'], login_data['salt']
 
-            response = await session.post('/webapi/auth/getdata', data={})
-            json = response.json()
-            lt, ver, salt = json['lt'], json['ver'], json['salt']
+            encoded_password = (
+                hashlib.md5(password.encode('windows-1251')).hexdigest().encode()
+            )
+            pw2 = hashlib.md5(salt.encode() + encoded_password).hexdigest()
+            pw = pw2[: len(password)]
 
             login_form = await get_login_form(str(session.base_url), province, city, school)
 
-            encoded_pw = (
-                hashlib.md5(password.encode('windows-1251')).hexdigest().encode()
-            )
-            pw2 = hashlib.md5(salt.encode() + encoded_pw).hexdigest()
-            pw = pw2[: len(password)]
-
-            request = {
-                'LoginType': 1,
+            request_parameters = {
+                'LoginType': 1,  # забавный факт -- LoginType может иметь значения от 0 до 8,
+                                 # но не 7. почему? никто не знает...
                 **login_form,
                 'UN': login,
                 'PW': pw,
@@ -73,7 +71,7 @@ class NetSchoolAPI:
 
             response = await session.post(
                 '/webapi/login',
-                data=request,
+                data=request_parameters,
                 headers={'Referer': f'{session.base_url}/about.html'},
             )
 
@@ -98,15 +96,12 @@ class NetSchoolAPI:
             )
 
     async def get_diary(
-        self, week_start: Optional[datetime] = None, week_end: Optional[datetime] = None
-    ) -> dict:
+        self,
+        week_start: Optional[datetime] = datetime.today(),
+        week_end: Optional[datetime] = datetime.today() + timedelta(days=6),
+    ) -> Diary:
 
-        if week_start is None:
-            week_start = datetime.now() - timedelta(days=datetime.today().weekday() + 1)
-        if week_end is None:
-            week_end = datetime.now() + timedelta(days=(6 - datetime.today().weekday() + 1))
-
-        diary = await self._client.get(
+        diary = (await self._client.get(
             '/webapi/student/diary',
             params={
                 'studentId': self._user_id,
@@ -114,11 +109,14 @@ class NetSchoolAPI:
                 'weekEnd': week_end.date().isoformat(),
                 'yearId': self._year_id,
             },
-        )
-        return diary.json()
+        )).json()
+
+        return dacite.from_dict(Diary, diary)
 
     async def get_diary_df(
-        self, week_start: Optional[datetime] = None, week_end: Optional[datetime] = None
+        self,
+        week_start: Optional[datetime] = datetime.today(),
+        week_end: Optional[datetime] = datetime.today() + timedelta(days=6),
     ):
         try:
             import pandas as pd
@@ -127,29 +125,21 @@ class NetSchoolAPI:
                 'Pandas not installed. Install netschoolapi[tables].'
             ) from err
 
-        response = await self.get_diary(week_start, week_end)
+        diary = await self.get_diary(week_start, week_end)
         df = pd.DataFrame()
 
-        for day in response['weekDays']:
-            date = parse_date(day['date']).weekday()
+        for day in diary.weekDays:
+            date = parse_date(day.date).weekday()
 
-            for lesson in day['lessons']:
-                try:
-                    homework = lesson['assignments'][0]['assignmentName']
-                except KeyError:
-                    homework = None
-
-                try:
-                    mark = lesson['assignments'][0]['mark']['mark']
-                except (KeyError, TypeError):
-                    mark = None
-
-                subject = lesson['subjectName']
-
-                if lesson['room'] is not None:
-                    room = [int(s) for s in lesson['room'].split('/') if s.isdigit()][0]
+            for lesson in day.lessons:
+                subject = lesson.subjectName
+                # TODO сделать какой-нибудь метод на это дело
+                if lesson.assignments:
+                    homework = lesson.assignments[0].assignmentName
+                    mark = lesson.assignments[0].mark
                 else:
-                    room = None
+                    homework = mark = None
+                room = lesson.room
 
                 df = df.append(
                     {
@@ -166,6 +156,11 @@ class NetSchoolAPI:
         return df
 
     async def get_announcements(self) -> List[Announcement]:
+        """Получение объявлений.
+
+         Returns:
+             list[Announcement] -- объявления.
+         """
         announcements = (await self._client.get('/webapi/announcements?take=-1')).json()
         return [dacite.from_dict(Announcement, announcement) for announcement in announcements]
 
