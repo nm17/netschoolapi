@@ -101,7 +101,7 @@ class NetSchoolAPI:
         week_end: Optional[datetime] = datetime.today() + timedelta(days=6),
     ) -> Diary:
 
-        diary = (await self._client.get(
+        diary = await self._client.get(
             '/webapi/student/diary',
             params={
                 'studentId': self._user_id,
@@ -109,9 +109,9 @@ class NetSchoolAPI:
                 'weekEnd': week_end.date().isoformat(),
                 'yearId': self._year_id,
             },
-        )).json()
+        )
 
-        return dacite.from_dict(Diary, diary)
+        return Diary.from_json(diary.text)
 
     async def get_diary_df(
         self,
@@ -129,13 +129,12 @@ class NetSchoolAPI:
         df = pd.DataFrame()
 
         for day in diary.weekDays:
-            date = parse_date(day.date).weekday()
-
             for lesson in day.lessons:
-                subject = lesson.subjectName
+                subject = lesson.subject
+
                 # TODO сделать какой-нибудь метод на это дело
                 if lesson.assignments:
-                    homework = lesson.assignments[0].assignmentName
+                    homework = lesson.assignments[0].name
                     mark = lesson.assignments[0].mark
                 else:
                     homework = mark = None
@@ -143,7 +142,7 @@ class NetSchoolAPI:
 
                 df = df.append(
                     {
-                        'Date': date,
+                        'Date': day.date,
                         'Homework': homework,
                         'Subject': subject,
                         'Mark': mark,

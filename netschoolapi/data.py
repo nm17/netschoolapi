@@ -1,39 +1,94 @@
-from dataclasses import dataclass
+from datetime import datetime
+from dateutil.parser import isoparse
+from dataclasses import dataclass, field
+from dataclasses_json import dataclass_json, LetterCase, config
 from typing import List, Optional
 
 
+_datetime_field = config(encoder=datetime.isoformat, decoder=isoparse)
+
+
+@dataclass_json(letter_case=LetterCase.CAMEL)
 @dataclass
 class Assignment:
-    # FIXME: оддержка оценок
-    mark: Optional[dict]  # Optional[int]
-    typeId: int  # 3 -- ДЗ, 10 -- оценка. Пока всё.
-    assignmentName: str
+    # Некоторые ключи отсутствуют by design, это не опечатка
+    _ASSIGNMENT_TYPES = {
+        1: 'Практическая работа',
+        2: 'Тематическая работа',
+        3: 'Домашнее задание',
+        4: 'Контрольная работа',
+        5: 'Самостоятельная работа',
+        6: 'Лабораторная работа',
+        7: 'Проект',
+        8: 'Диктант',
+        9: 'Реферат',
+        10: 'Ответ на уроке',
+        11: 'Сочинение',
+        12: 'Изложение',
+        13: 'Зачёт',
+        14: 'Тестирование',
+        16: 'Диагностическая контрольная работа',
+        17: 'Диагностическая работа',
+        18: 'Контрольное списывание',
+        21: 'Работа на уроке',
+        22: 'Работа в тетради',
+        23: 'Ведение рабочей тетради',
+        24: 'Доклад/Презентация',
+        25: 'Проверочная работа',
+        26: 'Чтение наизусть',
+        27: 'Пересказ текста',
+        29: 'Предметный диктант',
+        31: 'Дифференцированный зачет',
+        32: 'Работа с картами',
+        33: 'Экзамен',
+        34: 'Изложение с элементами сочинения',
+        35: 'Контроль аудирования',
+        36: 'Контроль грамматики',
+        37: 'Контроль лексеки',
+        38: 'Устный развернутый ответ',
+    }
+
+    mark: Optional[dict] = field(
+        metadata=config(
+            decoder=lambda mark_dict: mark_dict['mark'] if mark_dict else None,
+        )
+    )
+    type: str = field(
+        metadata=config(
+            decoder=lambda type_id: Assignment._ASSIGNMENT_TYPES[type_id],
+            field_name='typeId',
+        )
+    )
+    content: str = field(metadata=config(field_name='assignmentName'))
 
 
+@dataclass_json(letter_case=LetterCase.CAMEL)
 @dataclass
 class Lesson:
-    classmeetingId: int
-    day: str
+    classmeeting_id: int
+    day: datetime = field(metadata=_datetime_field)
     number: int
     # relay: int. Что это значит?
     room: str
-    startTime: str
-    endTime: str
-    subjectName: str
-    assignments: Optional[List[Assignment]]
+    start_at: str = field(metadata=config(field_name='startTime'))
+    end_at: str = field(metadata=config(field_name='endTime'))
+    subject: str = field(metadata=config(field_name='subjectName'))
+    assignments: List[Assignment] = field(default_factory=list)
 
 
+@dataclass_json(letter_case=LetterCase.CAMEL)
 @dataclass
 class Weekday:
-    date: str
+    date: datetime = field(metadata=_datetime_field)
     lessons: List[Lesson]
 
 
+@dataclass_json(letter_case=LetterCase.CAMEL)
 @dataclass
 class Diary:
-    weekStart: str
-    weekEnd: str
-    weekDays: List[Weekday]
+    week_start: datetime = field(metadata=_datetime_field)
+    week_end: datetime = field(metadata=_datetime_field)
+    week_days: List[Weekday]
 
 
 @dataclass

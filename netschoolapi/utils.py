@@ -10,7 +10,7 @@ def _get_user_agent() -> str:
 
     Examples:
         >>> _get_user_agent()
-        httpx/0.15.3 (NetSchoolAPI/2.0.0; +https://github.com/nm17/netschoolapi)
+        'httpx/0.15.3 (NetSchoolAPI/2.0.0; +https://github.com/nm17/netschoolapi)'
     """
     httpx_version = pkg_resources.get_distribution('httpx').version
     api_version = netschoolapi.__version__
