@@ -8,7 +8,7 @@ from typing import List, Optional
 _datetime_field = config(encoder=datetime.isoformat, decoder=isoparse)
 
 
-@dataclass_json(letter_case=LetterCase.CAMEL)
+@dataclass_json
 @dataclass
 class Assignment:
     # Некоторые ключи отсутствуют by design, это не опечатка
@@ -48,15 +48,15 @@ class Assignment:
         38: 'Устный развернутый ответ',
     }
 
-    mark: Optional[dict] = field(
-        metadata=config(
-            decoder=lambda mark_dict: mark_dict['mark'] if mark_dict else None,
-        )
-    )
     type: str = field(
         metadata=config(
             decoder=lambda type_id: Assignment._ASSIGNMENT_TYPES[type_id],
             field_name='typeId',
+        )
+    )
+    mark: Optional[int] = field(
+        metadata=config(
+            decoder=lambda mark_dict: mark_dict['mark'] if mark_dict else None,
         )
     )
     content: str = field(metadata=config(field_name='assignmentName'))
@@ -65,18 +65,26 @@ class Assignment:
 @dataclass_json(letter_case=LetterCase.CAMEL)
 @dataclass
 class Lesson:
-    classmeeting_id: int
-    day: datetime = field(metadata=_datetime_field)
     number: int
-    # relay: int. Что это значит?
-    room: str
+    subject: str = field(metadata=config(field_name='subjectName'))
+    day: datetime = field(metadata=_datetime_field)
     start_at: str = field(metadata=config(field_name='startTime'))
     end_at: str = field(metadata=config(field_name='endTime'))
-    subject: str = field(metadata=config(field_name='subjectName'))
+    room: str
     assignments: List[Assignment] = field(default_factory=list)
 
+    def homework(self) -> Optional[str]:
+        for assignment in self.assignments:
+            if assignment.type == 'Домашнее задание':
+                return assignment.content
 
-@dataclass_json(letter_case=LetterCase.CAMEL)
+    def mark(self) -> Optional[int]:
+        for assignment in self.assignments:
+            if assignment.mark:
+                return assignment.mark
+
+
+@dataclass_json
 @dataclass
 class Weekday:
     date: datetime = field(metadata=_datetime_field)
@@ -91,20 +99,23 @@ class Diary:
     week_days: List[Weekday]
 
 
+@dataclass_json
 @dataclass
 class Attachment:
     id: int
     name: str
-    originalFileName: str
+    file_name: str = field(metadata=config(field_name='originalFileName'))
 
 
+@dataclass_json
 @dataclass
 class User:
     id: int
     fio: str
-    nickName: str
+    nickname: str = field(metadata=config(field_name='nickName'))
 
 
+@dataclass_json(letter_case=LetterCase.CAMEL)
 @dataclass
 class Announcement:
     description: str
@@ -113,4 +124,4 @@ class Announcement:
     id: int
     name: str
     em = None
-    recipientInfo = None
+    recipient_info = None

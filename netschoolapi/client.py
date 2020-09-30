@@ -6,7 +6,6 @@ from datetime import datetime, timedelta
 from typing import Optional, List
 
 import dacite
-from dateutil.parser import parse as parse_date
 from httpx import AsyncClient
 
 from .data import Announcement, Diary
@@ -101,7 +100,7 @@ class NetSchoolAPI:
         week_end: Optional[datetime] = datetime.today() + timedelta(days=6),
     ) -> Diary:
 
-        diary = await self._client.get(
+        diary = (await self._client.get(
             '/webapi/student/diary',
             params={
                 'studentId': self._user_id,
@@ -109,9 +108,9 @@ class NetSchoolAPI:
                 'weekEnd': week_end.date().isoformat(),
                 'yearId': self._year_id,
             },
-        )
+        )).json()
 
-        return Diary.from_json(diary.text)
+        return Diary.from_dict(diary)
 
     async def get_diary_df(
         self,
@@ -131,14 +130,9 @@ class NetSchoolAPI:
         for day in diary.weekDays:
             for lesson in day.lessons:
                 subject = lesson.subject
-
-                # TODO сделать какой-нибудь метод на это дело
-                if lesson.assignments:
-                    homework = lesson.assignments[0].name
-                    mark = lesson.assignments[0].mark
-                else:
-                    homework = mark = None
                 room = lesson.room
+                homework = lesson.homework()
+                mark = lesson.mark()
 
                 df = df.append(
                     {
@@ -161,7 +155,7 @@ class NetSchoolAPI:
              list[Announcement] -- объявления.
          """
         announcements = (await self._client.get('/webapi/announcements?take=-1')).json()
-        return [dacite.from_dict(Announcement, announcement) for announcement in announcements]
+        return [Announcement.from_dict(announcement) for announcement in announcements]
 
     async def logout(self):
         """Выход из сессии."""
