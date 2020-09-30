@@ -14,6 +14,6 @@ setup(
     long_description=open("README.md").read(),
     install_requires=["httpx", "python-dateutil", "dataclasses-json"],
     extras_require={"tables": ["pandas"]},
-    python_requires=">=3.6",
+    python_requires='>=3.6',
     long_description_content_type="text/markdown",
 )
