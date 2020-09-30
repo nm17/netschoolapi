@@ -32,18 +32,16 @@ async def _get_prepared_login_form(client: AsyncClient, url: str) -> Dict[str, i
         >>> await _get_prepared_login_form('https://edu.admoblkaluga.ru/')
         {'cid': 2, 'sid': 122, 'sft': 2}
     """
-    response = await client.get(f'{url}/webapi/prepareloginform')
+    response = await client.get(f"{url}/webapi/prepareloginform")
     if response.status_code != StatusCode.OK:
-        raise UnknownServerError(response.json()['message'])
+        raise UnknownServerError(response.json()["message"])
     login_form = response.json()
-    return {
-        'cid': login_form['cid'],
-        'sid': login_form['sid'],
-        'sft': 2,
-    }
+    return {"cid": login_form["cid"], "sid": login_form["sid"], "sft": 2}
 
 
-async def get_login_form(url: str, province: str, city: str, school: str) -> Dict[str, int]:
+async def get_login_form(
+    url: str, province: str, city: str, school: str
+) -> Dict[str, int]:
     """Составление полных данных о местоположении школы.
 
     Note:
@@ -95,23 +93,22 @@ async def get_login_form(url: str, province: str, city: str, school: str) -> Dic
         ... )
         {'cid': 2,'sid': 73, 'sft': 2, 'pid': -51, 'cn': 51, 'scid': 488}
     """
-    queue = {'sid': 'pid', 'pid': 'cn', 'sft': 'scid'}
-    user_form = {'pid': province, 'cn': city, 'scid': school}
+    queue = {"sid": "pid", "pid": "cn", "sft": "scid"}
+    user_form = {"pid": province, "cn": city, "scid": school}
 
     async with AsyncClient() as client:
         login_form = await _get_prepared_login_form(client, url)
         for last_name in queue.keys():
             response = await client.get(
-                f'{url}/webapi/loginform',
-                params={**login_form, 'lastname': last_name},
+                f"{url}/webapi/loginform", params={**login_form, "lastname": last_name}
             )
             if response.status_code != StatusCode.OK:
                 raise UnknownServerError(response.text)
 
             items = response.json()
-            for item in items['items']:
-                if item['name'] == user_form[queue[last_name]]:
-                    login_form.update({queue[last_name]: item['id']})
+            for item in items["items"]:
+                if item["name"] == user_form[queue[last_name]]:
+                    login_form.update({queue[last_name]: item["id"]})
                     break
             else:
                 raise UnknownLoginData(user_form[queue[last_name]])
