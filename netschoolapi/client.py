@@ -1,13 +1,13 @@
 import hashlib
 import re
 from datetime import datetime, timedelta
-from typing import Optional
+from typing import Optional, Union
 
 import dacite
 import dateutil.parser
 import httpx
 
-from .data import Announcement
+from .data import Diary, Announcement, Lesson, AssignmentsInfo
 from .exceptions import WrongCredentialsError, RateLimitingError, UnknownServerError
 from .login_form import LoginForm
 from .utils import get_user_agent
@@ -20,7 +20,6 @@ def weekday():
 class NetSchoolAPI:
     def __init__(self, url):
         self.at: str = None
-        self.esrn_sec: str = None
         self.user_id: int = None
         self.year_id: int = None
         self.session = httpx.AsyncClient()
@@ -140,63 +139,7 @@ class NetSchoolAPI:
                 headers={"at": self.at},
             )
 
-        return resp.json()
-
-    async def get_diary_df(
-        self, week_start: Optional[datetime] = None, week_end: Optional[datetime] = None
-    ):
-        """
-        Получает данные дневника с сервера как таблицу pandas
-        :param week_start: начало недели
-        :param week_end: конец недели
-        :return: Ответ сервера как таблица pandas
-        """
-        try:
-            import pandas as pd
-        except ImportError as err:
-            raise ModuleNotFoundError(
-                "Pandas not installed. Install netschoolapi[tables]."
-            ) from err
-
-        resp = await self.get_diary(week_start, week_end)
-        df = pd.DataFrame()
-
-        for day in resp["weekDays"]:
-            date = dateutil.parser.parse(day["date"]).weekday()
-
-            for lesson in day["lessons"]:
-
-                try:
-                    hw = lesson["assignments"][0]["assignmentName"]
-                except KeyError:
-                    hw = None
-
-                try:
-                    mark = lesson["assignments"][0]["mark"]["mark"]
-                    print(mark)
-                except (KeyError, TypeError):
-                    mark = None
-
-                subject = lesson["subjectName"]
-
-                if lesson["room"] is not None:
-                    room = [int(s) for s in lesson["room"].split("/") if s.isdigit()][0]
-                else:
-                    room = None
-
-                df = df.append(
-                    {
-                        "Date": date,
-                        "Homework": hw,
-                        "Subject": subject,
-                        "Mark": mark,
-                        "Room": room,
-                    },
-                    ignore_index=True,
-                )
-
-        df = df.set_index("Date")
-        return df
+        return dacite.from_dict(Diary, resp.json())
 
     async def get_announcements(self):
         async with self.session as session:
@@ -206,6 +149,21 @@ class NetSchoolAPI:
                     await session.get(f"{self.url}/webapi/announcements?take=-1")
                 ).json()
             ]
+
+    async def get_lesson_assigns(self, lesson: Union[Lesson, int]):
+        """
+        https://netcity.admsakhalin.ru:11111/webapi/student/diary/assigns/344437549?studentId=133064643
+        """
+
+        if isinstance(lesson, int):
+            lesson_id = lesson
+        else:
+            lesson_id = lesson.assignments[0].id
+
+        async with self.session as session:
+            resp = await session.get(f"{self.url}/webapi/student/diary/assigns/{lesson_id}?studentId={self.user_id}")
+
+        return dacite.from_dict(AssignmentsInfo, resp.json())
 
     async def __aenter__(self):
         return self

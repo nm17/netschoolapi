@@ -1,4 +1,6 @@
 import httpx
+import dacite
+from .data import LoginFormData
 
 ALL_LOGIN_ARGS = ("country", "state", "province", "city", "func", "school")
 
@@ -18,6 +20,7 @@ ALL_LOGIN_KWARGS = {
 
 
 class LoginForm:
+
     def __init__(self, url, client=httpx.AsyncClient()):
         assert isinstance(url, str)
         self.url = url
@@ -62,7 +65,19 @@ class LoginForm:
 
         return resp.json()
 
-    async def get_login_form(self, **login_kwargs):
+    async def get_login_form(self, **login_kwargs) -> LoginFormData:
+        """
+        Страна - countries - cid
+        Регион - states - sid
+        Городской округ / Муниципальный район - provinces - pid
+        Населённый пункт - cities - cn
+        Тип ОО - funcs - sft
+        Образовательная организация - schools - scid
+
+        :param login_kwargs: countries, states, provinces, cities, funcs, schools
+        :return: LoginFormData
+        """
+
         prepare_data = await self.get_prepare_form_data()
 
         result = {}
@@ -98,4 +113,4 @@ class LoginForm:
                 else:
                     result[login.upper()] = adv_prepare_data["items"][0]["id"]
 
-        return result
+        return dacite.from_dict(LoginFormData, result)
