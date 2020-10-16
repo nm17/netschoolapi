@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import List, Optional
+from typing import List, Optional, Any
 
 
 @dataclass
@@ -42,13 +42,20 @@ class Teacher:
 @dataclass
 class Attachment:
     id: int
-    name: str
+    name: Optional[str]
     originalFileName: str
     description: Optional[str]
 
 
 @dataclass
-class AssignmentsInfo:
+class LessonAttachments:
+    assignmentId: int
+    attachments: List[Attachment]
+    answerFiles: List[Any]
+
+
+@dataclass
+class AssignmentInfo:
     id: int
     assignmentName: str
     activityName: Optional[str]
@@ -64,7 +71,7 @@ class AssignmentsInfo:
 
 
 @dataclass
-class Assignments:
+class Assignment:
     mark: Optional[Mark]
     id: int
     typeId: int
@@ -83,7 +90,7 @@ class Lesson:
     startTime: Optional[str]
     endTime: Optional[str]
     subjectName: Optional[str]
-    assignments: Optional[List[Assignments]]
+    assignments: Optional[List[Assignment]]
 
 
 @dataclass
