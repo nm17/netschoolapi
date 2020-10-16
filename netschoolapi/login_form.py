@@ -1,12 +1,12 @@
 """Модуль для получения loginform'ы."""
 
 
-from typing import Dict
+from typing import Dict, Optional
 from httpx import AsyncClient, StatusCode
 from .exceptions import UnknownServerError, UnknownLoginData
 
 
-async def _get_prepared_login_form(client: AsyncClient, url: str) -> Dict[str, int]:
+async def _get_prepared_login_form(client: AsyncClient) -> Dict[str, int]:
     """Получение id страны, id субъекта и тип ОО.
 
     Note:
@@ -17,22 +17,15 @@ async def _get_prepared_login_form(client: AsyncClient, url: str) -> Dict[str, i
         что пользователь учится в общеобразовательной школе.
 
     Arguments:
-        client: AsyncClient.
-        url: str -- сайт СГО.
+        client: AsyncClient
 
     Returns:
         dict('cid', 'sid', 'sft')
 
     Raises:
-        UnknownServerError, если запрос неудачный.
-
-    Examples:
-        >>> await _get_prepared_login_form('https://sgo.cit73.ru/')
-        {'cid': 2, 'sid': 73, 'sft': 2}
-        >>> await _get_prepared_login_form('https://edu.admoblkaluga.ru/')
-        {'cid': 2, 'sid': 122, 'sft': 2}
+        UnknownServerError, если запрос неудачный
     """
-    response = await client.get(f'{url}/webapi/prepareloginform')
+    response = await client.get('/webapi/prepareloginform')
     if response.status_code != StatusCode.OK:
         raise UnknownServerError(response.json()['message'])
     login_form = response.json()
@@ -43,11 +36,17 @@ async def _get_prepared_login_form(client: AsyncClient, url: str) -> Dict[str, i
     }
 
 
-async def get_login_form(url: str, province: str, city: str, school: str) -> Dict[str, int]:
+async def get_login_form(
+        url: str,
+        province: Optional[str] = None,
+        city: Optional[str] = None,
+        school: Optional[str] = None,
+) -> Dict[str, int]:
     """Составление полных данных о местоположении школы.
 
     Note:
         ВСЁ ПИСАТЬ В ТОЧНОСТИ КАК НА САЙТЕ! ЭТО ВАЖНО!
+        Если параметр не указан, будет выбран первый из списка.
 
         сокращения, которые использует СГО:
             cid (country id) -- номер страны
@@ -74,10 +73,10 @@ async def get_login_form(url: str, province: str, city: str, school: str) -> Dic
                 cid, sid, sft, pid, cn, scid <- то, что получаем в итоге.
 
     Arguments:
-        url: str -- сайт СГО.
-        province: str -- название района.
-        city: str -- название населенного пункта.
-        school: str -- название ОО.
+        url: str -- сайт СГО
+        province: Optional[str] -- название района
+        city: Optional[str] -- название населенного пункта
+        school: Optional[str] -- название ОО
 
     Raises:
         UnknownServerError при неуспешном запросе.
@@ -94,22 +93,35 @@ async def get_login_form(url: str, province: str, city: str, school: str) -> Dic
         ...     '"Луговская ОШ"',
         ... )
         {'cid': 2,'sid': 73, 'sft': 2, 'pid': -51, 'cn': 51, 'scid': 488}
+        >>> await get_login_form('https://dnevnik-kchr.ru/')
+        {'cid': 2, 'sid': 9, 'sft': 2, 'pid': -3, 'cn': 3, 'scid': 22}
+        >>> await get_login_form(
+        ...     'https://edu.admoblkaluga.ru:444/',
+        ...     province='Городской округ Обнинск',
+        ... )
+        {'cid': 2, 'sid': 122, 'sft': 2, 'pid': -4007, 'cn': 4007, 'scid': 550}
     """
+
     queue = {'sid': 'pid', 'pid': 'cn', 'sft': 'scid'}
     user_form = {'pid': province, 'cn': city, 'scid': school}
 
-    async with AsyncClient() as client:
-        login_form = await _get_prepared_login_form(client, url)
+    async with AsyncClient(base_url=url) as client:
+        login_form = await _get_prepared_login_form(client)
+
         for last_name in queue.keys():
             response = await client.get(
-                f'{url}/webapi/loginform',
-                params={**login_form, 'lastname': last_name},
+                '/webapi/loginform', params={**login_form, 'lastname': last_name},
             )
             if response.status_code != StatusCode.OK:
                 raise UnknownServerError(response.text)
 
-            items = response.json()
-            for item in items['items']:
+            items = response.json()['items']
+
+            if user_form[queue[last_name]] is None:
+                login_form.update({queue[last_name]: items[0]['id']})
+                continue
+
+            for item in items:
                 if item['name'] == user_form[queue[last_name]]:
                     login_form.update({queue[last_name]: item['id']})
                     break

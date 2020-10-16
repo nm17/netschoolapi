@@ -5,7 +5,6 @@ import re
 from datetime import datetime, timedelta
 from typing import Optional, List
 
-import dacite
 from httpx import AsyncClient
 
 from .data import Announcement, Diary
@@ -29,21 +28,26 @@ class NetSchoolAPI:
         self._user_id = 0
         self._year_id = 0
 
-    async def login(self, login: str, password: str, province: str, city: str, school: str):
+    async def login(
+            self, login: str, password: str,
+            province: Optional[str] = None,
+            city: Optional[str] = None,
+            school: Optional[str] = None,
+    ):
         """Выполняет вход в СГО.
 
         Arguments:
-            login: str -- логин, использующийся для входа на сайт.
-            password: str -- пароль, использующийся для входа.
-            province: str -- округ/район.
-            city: str -- город (как на сайте)
-            school: str -- название школа (как на сайте).
+            login: str -- логин, использующийся для входа на сайт
+            password: str -- пароль, использующийся для входа
+            province: Optional[str] -- округ/район
+            city: Optional[str] -- город
+            school: Optional[str] -- название школы
 
         Raises:
-            UnknownLoginData, если адрес школы указан неверно.
-            RateLimitingError при слишком частых запросах к СГО.
-            WrongCredentialsError, если неверно указан логин или пароль.
-            UnknownServerError.
+            UnknownLoginData, если адрес школы указан неверно
+            RateLimitingError при слишком частых запросах к СГО
+            WrongCredentialsError, если неверно указан логин или пароль
+            UnknownServerError
         """
         async with self._client as session:
             login_data = (await session.post('/webapi/auth/getdata', data={})).json()
@@ -58,8 +62,7 @@ class NetSchoolAPI:
             login_form = await get_login_form(str(session.base_url), province, city, school)
 
             request_parameters = {
-                'LoginType': 1,  # забавный факт -- LoginType может иметь значения от 0 до 8,
-                                 # но не 7. почему? никто не знает...
+                'LoginType': 1,
                 **login_form,
                 'UN': login,
                 'PW': pw,
@@ -112,47 +115,11 @@ class NetSchoolAPI:
 
         return Diary.from_dict(diary)
 
-    async def get_diary_df(
-        self,
-        week_start: Optional[datetime] = datetime.today(),
-        week_end: Optional[datetime] = datetime.today() + timedelta(days=6),
-    ):
-        try:
-            import pandas as pd
-        except ImportError as err:
-            raise ModuleNotFoundError(
-                'Pandas not installed. Install netschoolapi[tables].'
-            ) from err
-
-        diary = await self.get_diary(week_start, week_end)
-        df = pd.DataFrame()
-
-        for day in diary.weekDays:
-            for lesson in day.lessons:
-                subject = lesson.subject
-                room = lesson.room
-                homework = lesson.homework()
-                mark = lesson.mark()
-
-                df = df.append(
-                    {
-                        'Date': day.date,
-                        'Homework': homework,
-                        'Subject': subject,
-                        'Mark': mark,
-                        'Room': room,
-                    },
-                    ignore_index=True,
-                )
-
-        df = df.set_index('Date')
-        return df
-
     async def get_announcements(self) -> List[Announcement]:
         """Получение объявлений.
 
          Returns:
-             list[Announcement] -- объявления.
+             List[Announcement] -- объявления
          """
         announcements = (await self._client.get('/webapi/announcements?take=-1')).json()
         return [Announcement.from_dict(announcement) for announcement in announcements]
