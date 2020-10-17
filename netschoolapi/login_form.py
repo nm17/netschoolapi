@@ -21,10 +21,10 @@ ALL_LOGIN_KWARGS = {
 
 class LoginForm:
 
-    def __init__(self, url):
+    def __init__(self, url, client: httpx.AsyncClient = httpx.AsyncClient()):
         assert isinstance(url, str)
         self.url = url
-        self.client = httpx.AsyncClient()
+        self.client = client
 
     @staticmethod
     def get_prepare_data(prepare_data, login_kwargs, k, v):

@@ -41,11 +41,12 @@ class NetSchoolAPI:
             province: Optional[str] = None,
             state: Optional[str] = None,
             city: Optional[str] = None,
+            client: httpx.AsyncClient = httpx.AsyncClient(),
     ):
         self.at: str = None
         self.user_id: int = None
         self.year_id: int = None
-        self.session: httpx.AsyncClient = httpx.AsyncClient()
+        self.session: httpx.AsyncClient = client
         self.url: str = url.rstrip("/")
 
         self._login_kwargs = {
