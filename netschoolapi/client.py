@@ -19,7 +19,7 @@ from .data import (
 )
 from .exceptions import WrongCredentialsError, RateLimitingError, UnknownServerError
 from .login_form import LoginForm
-from .utils import get_user_agent, from_dataclass
+from .utils import get_user_agent, to_dict
 from io import BytesIO
 
 
@@ -99,7 +99,7 @@ class NetSchoolAPI:
 
             data = {
                 "LoginType": "1",
-                **from_dataclass(login_form),
+                **to_dict(login_form),
                 "UN": login,
                 "PW": pw,
                 "lt": lt,
