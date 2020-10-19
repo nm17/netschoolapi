@@ -34,7 +34,7 @@ class NetSchoolAPI:
             url: str,
             login: str = None,
             password: str = None,
-            login_form: Optional[LoginFormData] = None,
+            login_form: Optional[Union[LoginFormData, dict]] = None,
             school: Optional[str] = None,
             country: Optional[str] = None,
             func: Optional[str] = None,
