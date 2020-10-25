@@ -1,4 +1,5 @@
 from netschoolapi.login_form import LoginForm
+from netschoolapi.utils import to_dict
 import asyncio
 
 # Тест нового /webapi/loginform , спасибо dsolmann за то что помог мне разобраться с ним.
@@ -16,7 +17,7 @@ async def main():
         func="Общеобразовательная",
     )
 
-    assert result == {
+    assert to_dict(result) == {
         "CID": 2,
         "SID": 122,
         "PID": 36,

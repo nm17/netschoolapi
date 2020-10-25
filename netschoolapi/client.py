@@ -1,16 +1,26 @@
 import hashlib
 import re
 from datetime import datetime, timedelta
-from typing import Optional
+from typing import Optional, Union, List
 
 import dacite
 import dateutil.parser
 import httpx
 
-from .data import Announcement
+from .data import (
+    Diary,
+    Announcement,
+    Lesson,
+    AssignmentInfo,
+    LoginFormData,
+    Attachment,
+    Assignment,
+    LessonAttachments,
+)
 from .exceptions import WrongCredentialsError, RateLimitingError, UnknownServerError
 from .login_form import LoginForm
-from .utils import get_user_agent
+from .utils import get_user_agent, to_dict
+from io import BytesIO
 
 
 def weekday():
@@ -18,19 +28,44 @@ def weekday():
 
 
 class NetSchoolAPI:
-    def __init__(self, url):
+
+    def __init__(
+            self,
+            url: str,
+            login: str = None,
+            password: str = None,
+            login_form: Optional[Union[LoginFormData, dict]] = None,
+            school: Optional[str] = None,
+            country: Optional[str] = None,
+            func: Optional[str] = None,
+            province: Optional[str] = None,
+            state: Optional[str] = None,
+            city: Optional[str] = None,
+            client: httpx.AsyncClient = httpx.AsyncClient(),
+    ):
         self.at: str = None
-        self.esrn_sec: str = None
         self.user_id: int = None
         self.year_id: int = None
-        self.session = httpx.AsyncClient()
-        self.url = url.rstrip("/")
+        self.session: httpx.AsyncClient = client
+        self.url: str = url.rstrip("/")
+
+        self._login_kwargs = {
+            "login": login,
+            "password": password,
+            "login_form": login_form,
+            "school": school,
+            "country": country,
+            "func": func,
+            "province": province,
+            "state": state,
+            "city": city
+        }
 
     async def login(
         self,
         login: str,
         password: str,
-        login_form: Optional[LoginForm] = None,
+        login_form: Optional[LoginFormData] = None,
         school: Optional[str] = None,
         country: Optional[str] = None,
         func: Optional[str] = None,
@@ -46,7 +81,7 @@ class NetSchoolAPI:
             lt, ver, salt = data["lt"], data["ver"], data["salt"]
 
             if login_form is None:
-                lf = LoginForm(url=self.url)
+                lf = LoginForm(self.url)
                 login_form = await lf.get_login_form(
                     school=school,
                     city=city,
@@ -64,7 +99,7 @@ class NetSchoolAPI:
 
             data = {
                 "LoginType": "1",
-                **login_form,
+                **to_dict(login_form),
                 "UN": login,
                 "PW": pw,
                 "lt": lt,
@@ -112,9 +147,11 @@ class NetSchoolAPI:
             self.session.headers["User-Agent"] = get_user_agent()
             self.session.headers["at"] = self.at
 
+            del self._login_kwargs
+
     async def get_diary(
         self, week_start: Optional[datetime] = None, week_end: Optional[datetime] = None
-    ):
+    ) -> Diary:
         """
         Получает данные дневника с сервера
         :param week_start: начало недели
@@ -140,65 +177,9 @@ class NetSchoolAPI:
                 headers={"at": self.at},
             )
 
-        return resp.json()
+        return dacite.from_dict(Diary, resp.json())
 
-    async def get_diary_df(
-        self, week_start: Optional[datetime] = None, week_end: Optional[datetime] = None
-    ):
-        """
-        Получает данные дневника с сервера как таблицу pandas
-        :param week_start: начало недели
-        :param week_end: конец недели
-        :return: Ответ сервера как таблица pandas
-        """
-        try:
-            import pandas as pd
-        except ImportError as err:
-            raise ModuleNotFoundError(
-                "Pandas not installed. Install netschoolapi[tables]."
-            ) from err
-
-        resp = await self.get_diary(week_start, week_end)
-        df = pd.DataFrame()
-
-        for day in resp["weekDays"]:
-            date = dateutil.parser.parse(day["date"]).weekday()
-
-            for lesson in day["lessons"]:
-
-                try:
-                    hw = lesson["assignments"][0]["assignmentName"]
-                except KeyError:
-                    hw = None
-
-                try:
-                    mark = lesson["assignments"][0]["mark"]["mark"]
-                    print(mark)
-                except (KeyError, TypeError):
-                    mark = None
-
-                subject = lesson["subjectName"]
-
-                if lesson["room"] is not None:
-                    room = [int(s) for s in lesson["room"].split("/") if s.isdigit()][0]
-                else:
-                    room = None
-
-                df = df.append(
-                    {
-                        "Date": date,
-                        "Homework": hw,
-                        "Subject": subject,
-                        "Mark": mark,
-                        "Room": room,
-                    },
-                    ignore_index=True,
-                )
-
-        df = df.set_index("Date")
-        return df
-
-    async def get_announcements(self):
+    async def get_announcements(self) -> List[Announcement]:
         async with self.session as session:
             return [
                 dacite.from_dict(Announcement, announcement)
@@ -207,7 +188,64 @@ class NetSchoolAPI:
                 ).json()
             ]
 
+    async def get_lesson_assigns(self, assignment: Union[Assignment, int]) -> AssignmentInfo:
+        """
+        Получить доп.инфу о дз
+        :param assignment: Либо id дз или сам датакласс Assignment
+        :return: Датакласс AssignmentInfo
+        """
+
+        if isinstance(assignment, int):
+            lesson_id = assignment
+        else:
+            lesson_id = assignments.id
+
+        async with self.session as session:
+            resp = await session.get(f"{self.url}/webapi/student/diary/assigns/{lesson_id}?studentId={self.user_id}")
+
+        return dacite.from_dict(AssignmentInfo, resp.json())
+
+    async def get_attachments(self, ids: List[int]) -> List[LessonAttachments]:
+        async with self.session as session:
+            resp = await session.post(
+                self.url + f"/webapi/student/diary/get-attachments?studentId={self.user_id}",
+                json={"assignId": ids}
+            )
+
+        return [
+                dacite.from_dict(LessonAttachments, attachments)
+                for attachments in resp.json()
+            ]
+
+    async def download_file(self, attachment: Attachment) -> BytesIO:
+        """
+        Скачать файл
+
+        :param attachment: Attachment из diary
+        :return: BytesIO
+        """
+        file = BytesIO()
+
+        async with self.session as session:
+            file_url = "{}/webapi/attachments/{}".format(self.url, attachment.id)
+
+            async with session.stream("GET", file_url) as resp:
+                async for chunk in resp.aiter_bytes():
+                    file.write(chunk)
+                    file.flush()
+                file.seek(0)
+
+        file.name = attachment.originalFileName
+        return file
+
     async def __aenter__(self):
+
+        if self._login_kwargs["login"] is None:
+            raise TypeError("missing required positional argument: 'login'")
+        elif self._login_kwargs["password"] is None:
+            raise TypeError("missing required positional argument: 'password'")
+
+        await self.login(**self._login_kwargs)
         return self
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):

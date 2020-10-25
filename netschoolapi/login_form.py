@@ -1,4 +1,6 @@
 import httpx
+import dacite
+from .data import LoginFormData
 
 ALL_LOGIN_ARGS = ("country", "state", "province", "city", "func", "school")
 
@@ -18,7 +20,8 @@ ALL_LOGIN_KWARGS = {
 
 
 class LoginForm:
-    def __init__(self, url, client=httpx.AsyncClient()):
+
+    def __init__(self, url, client: httpx.AsyncClient = httpx.AsyncClient()):
         assert isinstance(url, str)
         self.url = url
         self.client = client
@@ -62,8 +65,37 @@ class LoginForm:
 
         return resp.json()
 
-    async def get_login_form(self, **login_kwargs):
+    async def get_login_form(
+            self,
+            country: str = None,
+            state: str = None,
+            province: str = None,
+            city: str = None,
+            func: str = None,
+            school: str = None
+    ) -> LoginFormData:
+        """
+
+        :param country: Страна - countries - cid
+        :param state: Регион - states - sid
+        :param province: Городской округ / Муниципальный район - provinces - pid
+        :param city: Населённый пункт - cities - cn
+        :param func: Тип ОО - funcs - sft
+        :param school: Образовательная организация - schools - scid
+
+        :return: LoginFormData
+        """
+
         prepare_data = await self.get_prepare_form_data()
+
+        login_kwargs = {
+            "country": country,
+            "state": state,
+            "province": province,
+            "city": city,
+            "func": func,
+            "school": school
+        }
 
         result = {}
 
@@ -72,7 +104,7 @@ class LoginForm:
 
             login = LOGIN_FORM_QUEUE[v]
 
-            if isinstance(login_kwargs.get(k), str):
+            if login_kwargs[k] is not None:
                 data = self.get_prepare_data(prepare_data[v], login_kwargs, k, v)
 
                 if data is not None:
@@ -98,4 +130,4 @@ class LoginForm:
                 else:
                     result[login.upper()] = adv_prepare_data["items"][0]["id"]
 
-        return result
+        return dacite.from_dict(LoginFormData, result)
