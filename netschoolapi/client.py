@@ -28,24 +28,24 @@ def weekday():
 
 
 class NetSchoolAPI:
+    at: str
+    user_id: int
+    year_id: int
 
     def __init__(
-            self,
-            url: str,
-            login: str = None,
-            password: str = None,
-            login_form: Optional[Union[LoginFormData, dict]] = None,
-            school: Optional[str] = None,
-            country: Optional[str] = None,
-            func: Optional[str] = None,
-            province: Optional[str] = None,
-            state: Optional[str] = None,
-            city: Optional[str] = None,
-            client: httpx.AsyncClient = httpx.AsyncClient(),
+        self,
+        url: str,
+        login: str = None,
+        password: str = None,
+        login_form: Optional[Union[LoginFormData, dict]] = None,
+        school: Optional[str] = None,
+        country: Optional[str] = None,
+        func: Optional[str] = None,
+        province: Optional[str] = None,
+        state: Optional[str] = None,
+        city: Optional[str] = None,
+        client: httpx.AsyncClient = httpx.AsyncClient(),
     ):
-        self.at: str = None
-        self.user_id: int = None
-        self.year_id: int = None
         self.session: httpx.AsyncClient = client
         self.url: str = url.rstrip("/")
 
@@ -58,7 +58,7 @@ class NetSchoolAPI:
             "func": func,
             "province": province,
             "state": state,
-            "city": city
+            "city": city,
         }
 
     async def login(
@@ -188,7 +188,9 @@ class NetSchoolAPI:
                 ).json()
             ]
 
-    async def get_lesson_assigns(self, assignment: Union[Assignment, int]) -> AssignmentInfo:
+    async def get_lesson_assigns(
+        self, assignment: Union[Assignment, int]
+    ) -> AssignmentInfo:
         """
         Получить доп.инфу о дз
         :param assignment: Либо id дз или сам датакласс Assignment
@@ -198,24 +200,27 @@ class NetSchoolAPI:
         if isinstance(assignment, int):
             lesson_id = assignment
         else:
-            lesson_id = assignments.id
+            lesson_id = assignment.id
 
         async with self.session as session:
-            resp = await session.get(f"{self.url}/webapi/student/diary/assigns/{lesson_id}?studentId={self.user_id}")
+            resp = await session.get(
+                f"{self.url}/webapi/student/diary/assigns/{lesson_id}?studentId={self.user_id}"
+            )
 
         return dacite.from_dict(AssignmentInfo, resp.json())
 
     async def get_attachments(self, ids: List[int]) -> List[LessonAttachments]:
         async with self.session as session:
             resp = await session.post(
-                self.url + f"/webapi/student/diary/get-attachments?studentId={self.user_id}",
-                json={"assignId": ids}
+                self.url
+                + f"/webapi/student/diary/get-attachments?studentId={self.user_id}",
+                json={"assignId": ids},
             )
 
         return [
-                dacite.from_dict(LessonAttachments, attachments)
-                for attachments in resp.json()
-            ]
+            dacite.from_dict(LessonAttachments, attachments)
+            for attachments in resp.json()
+        ]
 
     async def download_file(self, attachment: Attachment) -> BytesIO:
         """

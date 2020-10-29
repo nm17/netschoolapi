@@ -34,11 +34,14 @@ async def test_kaluga_2_bad(lf_kaluga):
     )
 
     # Проверяем что результат отличается только CN и SCID
-    assert set(
-        map(
-            lambda a: a[0],
-            set(result.__dict__.items()).difference(
-                set({"CID": 2, "SID": 122, "PID": 36, "SFT": 2}.items())
-            ),
+    assert (
+        set(
+            map(
+                lambda a: a[0],
+                set(result.__dict__.items()).difference(
+                    set({"CID": 2, "SID": 122, "PID": 36, "SFT": 2}.items())
+                ),
+            )
         )
-    ) == {"CN", "SCID"}
+        == {"CN", "SCID"}
+    )

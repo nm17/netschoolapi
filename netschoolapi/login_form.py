@@ -20,7 +20,6 @@ ALL_LOGIN_KWARGS = {
 
 
 class LoginForm:
-
     def __init__(self, url, client: httpx.AsyncClient = httpx.AsyncClient()):
         assert isinstance(url, str)
         self.url = url
@@ -66,13 +65,13 @@ class LoginForm:
         return resp.json()
 
     async def get_login_form(
-            self,
-            country: str = None,
-            state: str = None,
-            province: str = None,
-            city: str = None,
-            func: str = None,
-            school: str = None
+        self,
+        country: str = None,
+        state: str = None,
+        province: str = None,
+        city: str = None,
+        func: str = None,
+        school: str = None,
     ) -> LoginFormData:
         """
 
@@ -94,7 +93,7 @@ class LoginForm:
             "province": province,
             "city": city,
             "func": func,
-            "school": school
+            "school": school,
         }
 
         result = {}
@@ -124,7 +123,10 @@ class LoginForm:
                     result[login.upper()] = prepare_data[login]
                     continue
 
-                if len(adv_prepare_data["items"]) > 1 or len(adv_prepare_data["items"]) == 0:
+                if (
+                    len(adv_prepare_data["items"]) > 1
+                    or len(adv_prepare_data["items"]) == 0
+                ):
                     # Если не достаточно специфичный выбор
                     result[login.upper()] = prepare_data[login]
                 else:

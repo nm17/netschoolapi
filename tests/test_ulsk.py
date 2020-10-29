@@ -17,7 +17,14 @@ async def test_ulsk_1(lf_ulsk):
         func="Общеобразовательная",
     )
 
-    assert result.__dict__ == {"CID": 2, "SID": 73, "PID": 4, "CN": 132, "SFT": 2, "SCID": 155}
+    assert result.__dict__ == {
+        "CID": 2,
+        "SID": 73,
+        "PID": 4,
+        "CN": 132,
+        "SFT": 2,
+        "SCID": 155,
+    }
 
 
 @pytest.mark.asyncio
@@ -26,7 +33,14 @@ async def test_ulsk_2(lf_ulsk):
         state="Ульяновская обл", province="Чердаклинский район", city="Красный Яр, с."
     )
 
-    assert result.__dict__ == {"CID": 2, "SID": 73, "PID": 4, "CN": 490, "SFT": 1, "SCID": 1194}
+    assert result.__dict__ == {
+        "CID": 2,
+        "SID": 73,
+        "PID": 4,
+        "CN": 490,
+        "SFT": 1,
+        "SCID": 1194,
+    }
 
 
 @pytest.mark.asyncio
@@ -37,4 +51,11 @@ async def test_ulsk_3(lf_ulsk):
         school="МОУ Приволжская ОШ",
     )
 
-    assert result.__dict__ == {"CID": 2, "SID": 73, "PID": -38, "CN": 38, "SFT": 2, "SCID": 389}
+    assert result.__dict__ == {
+        "CID": 2,
+        "SID": 73,
+        "PID": -38,
+        "CN": 38,
+        "SFT": 2,
+        "SCID": 389,
+    }
