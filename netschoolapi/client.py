@@ -10,7 +10,6 @@ import httpx
 from .data import (
     Diary,
     Announcement,
-    Lesson,
     AssignmentInfo,
     LoginFormData,
     Attachment,
