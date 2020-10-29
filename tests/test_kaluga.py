@@ -17,7 +17,7 @@ async def test_kaluga_1(lf_kaluga):
         func="Общеобразовательная",
     )
 
-    assert result == {
+    assert result.__dict__ == {
         "CID": 2,
         "SID": 122,
         "PID": 36,
@@ -37,7 +37,7 @@ async def test_kaluga_2_bad(lf_kaluga):
     assert set(
         map(
             lambda a: a[0],
-            set(result.items()).difference(
+            set(result.__dict__.items()).difference(
                 set({"CID": 2, "SID": 122, "PID": 36, "SFT": 2}.items())
             ),
         )
