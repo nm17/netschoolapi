@@ -2,7 +2,7 @@
 
 ![GitHub tag (latest SemVer)](https://img.shields.io/github/v/tag/nm17/netschoolapi) ![GitHub](https://img.shields.io/github/license/nm17/netschoolapi) [![HitCount](http://hits.dwyl.io/nm17/netschoolapi.svg)](http://hits.dwyl.io/nm17/netschoolapi) [![Downloads](https://pepy.tech/badge/netschoolapi)](https://pepy.tech/project/netschoolapi) [![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/3675/badge)](https://bestpractices.coreinfrastructure.org/projects/3675)
 
-### Документация: https://nm17.gitbook.io/netschoolapi/
+### Документация *(сильно устарела, пока лучше смотрите папку examples/)*: https://nm17.gitbook.io/netschoolapi/
 
 > Полностью асинхронный API клиент для "Сетевой Город. Образование" написанный на Python
 
