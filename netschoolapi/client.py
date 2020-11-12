@@ -26,7 +26,7 @@ def weekday():
 
 
 class NetSchoolAPI:
-    at: str
+    access_token: str
     user_id: int
     year_id: int
 
@@ -112,7 +112,7 @@ class NetSchoolAPI:
             )
 
             try:
-                self.at = resp.json()["at"]
+                self.access_token = resp.json()["at"]
 
             except KeyError as err:
 
@@ -134,7 +134,7 @@ class NetSchoolAPI:
 
             resp = await session.post(
                 self.url + "/angular/school/studentdiary/",
-                data={"AT": self.at, "VER": ver},
+                data={"AT": self.access_token, "VER": ver},
             )
 
             self.user_id = int(
@@ -143,7 +143,7 @@ class NetSchoolAPI:
 
             self.year_id = int(re.search(r'yearId = "(\d+)"', resp.text, re.U).group(1))
             self.session.headers["User-Agent"] = get_user_agent()
-            self.session.headers["at"] = self.at
+            self.session.headers["at"] = self.access_token
 
             del self._login_kwargs
 
@@ -172,7 +172,7 @@ class NetSchoolAPI:
                     "withLaAssigns": "true",
                     "yearId": self.year_id,
                 },
-                headers={"at": self.at},
+                headers={"at": self.access_token},
             )
 
         return dacite.from_dict(Diary, resp.json())
@@ -261,6 +261,6 @@ class NetSchoolAPI:
         async with self.session as session:
             await session.post(
                 self.url + "/asp/logout.asp",
-                params={"at": self.at, "VER": int(datetime.now().timestamp()) * 100},
+                params={"at": self.access_token, "VER": int(datetime.now().timestamp()) * 100},
                 data={},
             )
