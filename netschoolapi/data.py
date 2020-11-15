@@ -74,7 +74,7 @@ class Lesson:
     end_time: time = field(metadata=TIME_CONFIG)
     number: int
     # relay: int  # Даже не знаю, зачем он может быть нужен
-    room: str
+    room: Optional[int]
     assignments: Optional[List[Assignment]] = field(default_factory=list)
 
 
