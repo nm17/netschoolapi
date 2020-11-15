@@ -1,125 +1,11 @@
-from dataclasses import dataclass
-from typing import List, Optional, Any
+from dataclasses import dataclass, field
+from datetime import datetime, date, time
+from typing import Optional, List
+
+from dataclasses_json import dataclass_json, config, LetterCase
 
 
-@dataclass
-class LoginFormData:
-    CID: int
-    SID: int
-    PID: int
-    CN: int
-    SFT: int
-    SCID: int
-
-
-@dataclass
-class Mark:
-    assignmentId: int
-    studentId: int
-    mark: Optional[int]
-    dutyMark: bool
-
-
-@dataclass
-class SubjectGroup:
-    id: int
-    name: str
-
-
-@dataclass
-class User:
-    id: int
-    fio: str
-    nickName: str
-
-
-@dataclass
-class Teacher:
-    id: int
-    name: str
-
-
-@dataclass
-class Attachment:
-    id: int
-    name: Optional[str]
-    originalFileName: str
-    description: Optional[str]
-
-
-@dataclass
-class LessonAttachments:
-    assignmentId: int
-    attachments: List[Attachment]
-    answerFiles: List[Any]
-
-
-@dataclass
-class AssignmentInfo:
-    id: int
-    assignmentName: str
-    activityName: Optional[str]
-    problemName: Optional[str]
-    subjectGroup: SubjectGroup
-    teacher: Teacher
-    productId: Optional[int]
-    isDeleted: bool
-    weight: int
-    date: str
-    description: str
-    attachments: List[Attachment]
-
-
-@dataclass
-class Assignment:
-    mark: Optional[Mark]
-    id: int
-    typeId: int
-    assignmentName: str
-    dueDate: str
-    weight: int
-
-
-@dataclass
-class Lesson:
-    classmeetingId: int
-    day: str
-    number: int
-    room: Optional[str]
-    relay: int
-    startTime: Optional[str]
-    endTime: Optional[str]
-    subjectName: Optional[str]
-    assignments: Optional[List[Assignment]]
-
-
-@dataclass
-class Day:
-    date: str
-    lessons: List[Lesson]
-
-
-@dataclass
-class Diary:
-    weekStart: str
-    weekEnd: str
-    weekDays: List[Day]
-    termName: str
-    className: str
-
-
-@dataclass
-class Announcement:
-    description: str
-    postDate: str
-    deleteDate: Optional[str]
-    author: User
-    attachments: List[Attachment]
-    id: int
-    name: str
-    recipientInfo: Optional[str]
-
-
+# Некоторые ключи пропущены, и это не ошибка.
 ASSIGNMENT_TYPES = {
     1: "Практическая работа",
     2: "Тематическая работа",
@@ -155,3 +41,64 @@ ASSIGNMENT_TYPES = {
     37: "Контроль лексеки",
     38: "Устный развернутый ответ",
 }
+
+DATETIME_CONFIG = config(decoder=datetime.fromisoformat)
+DATE_CONFIG = config(decoder=lambda d: (datetime.fromisoformat(d).date()))
+TIME_CONFIG = config(decoder=time.fromisoformat)
+
+
+@dataclass_json(letter_case=LetterCase.CAMEL)
+@dataclass(frozen=True)
+class Assignment:
+    """Assignment...."""
+
+    a_type: str = field(metadata=config(
+        field_name="typeId",
+        decoder=lambda at: ASSIGNMENT_TYPES[at],
+    ))
+    name: str = field(metadata=config(field_name="assignmentName"))
+    mark: Optional[int] = field(
+        metadata=config(decoder=lambda m: m["mark"] if m else None),
+    )
+    due_date: Optional[date] = field(metadata=DATE_CONFIG, default=None)
+
+
+@dataclass_json(letter_case=LetterCase.CAMEL)
+@dataclass(frozen=True)
+class Lesson:
+    """Lesson...."""
+
+    subject: str = field(metadata=config(field_name="subjectName"))
+    day: date = field(metadata=DATE_CONFIG)
+    start_time: time = field(metadata=TIME_CONFIG)
+    end_time: time = field(metadata=TIME_CONFIG)
+    number: int
+    # relay: int  # Даже не знаю, зачем он может быть нужен
+    room: str
+    assignments: Optional[List[Assignment]] = field(default_factory=list)
+
+
+@dataclass_json(letter_case=LetterCase.CAMEL)
+@dataclass(frozen=True)
+class WeekDay:
+    """WeekDay...."""
+
+    date: date = field(metadata=DATE_CONFIG)
+    lessons: List[Lesson]
+
+
+@dataclass_json(letter_case=LetterCase.CAMEL)
+@dataclass(frozen=True)
+class Diary:
+    """Diary...."""
+
+    week_start: date = field(metadata=DATE_CONFIG)
+    week_end: date = field(metadata=DATE_CONFIG)
+    week_days: List[WeekDay]
+
+
+@dataclass_json(letter_case=LetterCase.CAMEL)
+@dataclass(frozen=True)
+class Announcement:
+    """Announcement...."""
+    pass
