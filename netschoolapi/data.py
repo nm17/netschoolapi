@@ -42,36 +42,63 @@ ASSIGNMENT_TYPES = {
     38: "Устный развернутый ответ",
 }
 
-DATETIME_CONFIG = config(decoder=datetime.fromisoformat)
-DATE_CONFIG = config(decoder=lambda d: (datetime.fromisoformat(d).date()))
-TIME_CONFIG = config(decoder=time.fromisoformat)
+DATETIME_DECODER = datetime.fromisoformat
+DATE_DECODER = lambda d: (datetime.fromisoformat(d).date())
+TIME_DECODER = time.fromisoformat
 
 
 @dataclass_json(letter_case=LetterCase.CAMEL)
 @dataclass(frozen=True)
-class Assignment:
-    """Assignment...."""
+class Attachment:
+    """Приложение. В терминах СГО: прикреплённый файл к домашнему заданию."""
 
-    a_type: str = field(metadata=config(
-        field_name="typeId",
-        decoder=lambda at: ASSIGNMENT_TYPES[at],
+    id: int
+    file_name: str
+    name: Optional[str] = None
+
+
+@dataclass_json(letter_case=LetterCase.CAMEL)
+@dataclass(frozen=True)
+class DetailedAssignment:
+    id: int
+    assignment_name: str
+    activity_name: Optional[str]
+    problem_name: Optional[str]
+    subject: str = field(metadata=config(
+        decoder=lambda s: s["name"], field_name="subjectGroup",
+    ))
+    is_deleted: bool
+    day: date = field(metadata=config(decoder=DATE_DECODER, field_name="date"))
+    description: str
+    teacher: str = field(metadata=config(decoder=lambda t: t["name"]))
+
+
+@dataclass_json()
+@dataclass(frozen=True)
+class Assignment:
+    """То же самое, что строчка в дневнике."""
+
+    id: int
+    type: str = field(metadata=config(
+        decoder=lambda at: ASSIGNMENT_TYPES[at], field_name="typeId",
     ))
     name: str = field(metadata=config(field_name="assignmentName"))
-    mark: Optional[int] = field(
-        metadata=config(decoder=lambda m: m["mark"] if m else None),
-    )
-    due_date: Optional[date] = field(metadata=DATE_CONFIG, default=None)
+    mark: Optional[int] = field(metadata=config(
+        decoder=lambda m: m["mark"] if m else None,
+    ))
+    deadline: Optional[date] = field(metadata=config(
+        decoder=DATE_DECODER, field_name="dueDate",
+    ))
 
 
 @dataclass_json(letter_case=LetterCase.CAMEL)
 @dataclass(frozen=True)
 class Lesson:
-    """Lesson...."""
 
     subject: str = field(metadata=config(field_name="subjectName"))
-    day: date = field(metadata=DATE_CONFIG)
-    start_time: time = field(metadata=TIME_CONFIG)
-    end_time: time = field(metadata=TIME_CONFIG)
+    day: date = field(metadata=config(decoder=DATE_DECODER))
+    starts_at: time = field(metadata=config(decoder=TIME_DECODER, field_name="startTime"))
+    ends_at: time = field(metadata=config(decoder=TIME_DECODER, field_name="endTime"))
     number: int
     # relay: int  # Даже не знаю, зачем он может быть нужен
     room: Optional[int]
@@ -81,24 +108,28 @@ class Lesson:
 @dataclass_json(letter_case=LetterCase.CAMEL)
 @dataclass(frozen=True)
 class WeekDay:
-    """WeekDay...."""
 
-    date: date = field(metadata=DATE_CONFIG)
+    day: date = field(metadata=config(decoder=DATE_DECODER, field_name="date"))
     lessons: List[Lesson]
 
 
 @dataclass_json(letter_case=LetterCase.CAMEL)
 @dataclass(frozen=True)
 class Diary:
-    """Diary...."""
 
-    week_start: date = field(metadata=DATE_CONFIG)
-    week_end: date = field(metadata=DATE_CONFIG)
-    week_days: List[WeekDay]
+    week_start: date = field(metadata=config(decoder=DATE_DECODER))
+    week_end: date = field(metadata=config(decoder=DATE_DECODER))
+    schedule: List[WeekDay] = field(metadata=config(field_name="weekDays"))
 
 
 @dataclass_json(letter_case=LetterCase.CAMEL)
 @dataclass(frozen=True)
 class Announcement:
-    """Announcement...."""
-    pass
+    id: int
+    name: str
+    description: str
+    posted_at: date = field(metadata=config(decoder=DATE_DECODER, field_name="postDate"))
+    delete_date: Optional[date] = field(metadata=config(decoder=DATE_DECODER))
+    # author: User
+    # recipientInfo: Optional[str]
+    attachments: Optional[List[Attachment]] = field(default_factory=list)

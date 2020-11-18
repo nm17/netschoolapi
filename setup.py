@@ -16,6 +16,6 @@ setup(
     url="https://github.com/nm17/netschoolapi/",
     packages=["netschoolapi"],
     license="MIT",
-    install_requires=["httpx", "python-dateutil", "dacite"],
-    python_requires=">=3.6",
+    install_requires=["httpx", "dataclasses-json"],
+    python_requires=">=3.7",
 )

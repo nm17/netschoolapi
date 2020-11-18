@@ -2,14 +2,25 @@ class NetSchoolAPIError(Exception):
     pass
 
 
-class WrongIdentityError(NetSchoolAPIError):
+class LoginDataError(NetSchoolAPIError):
     def __str__(self):
         return "Неправильный пароль или логин"
 
 
-class SchoolAddressError(NetSchoolAPIError):
-    def __init__(self, item: str):
-        self._item = item
+class LoginFormError(NetSchoolAPIError):
+    # Для более "человечного" сообщения об ошибках
+    _types_declensions = {
+        "sid": "регион",
+        "pid": "округ/район",
+        "cn": "населённый пункт",
+        "sft": "тип ОО",
+        "scid": "школа",
+    }
+
+    def __init__(self, type_: str, name: str):
+        self._type = type_
+        self._name = name
 
     def __str__(self):
-        return f"Некорректное значение '{self._item}'"
+        return f"Отстутствует {self._types_declensions[self._type]} " \
+               f"с названием '{self._name}'"
