@@ -5,7 +5,8 @@ from httpx import AsyncClient
 from . import exceptions
 
 
-async def _get_login_form(client: AsyncClient, school_address: Tuple[str]) -> Dict[str, int]:
+async def _get_login_form(client: AsyncClient,
+                          school_address: Tuple[str, str, str, str, str]) -> Dict[str, int]:
     """
 
     Returns:

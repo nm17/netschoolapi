@@ -1,7 +1,6 @@
 from datetime import date, timedelta
 from hashlib import md5
-from re import search, U
-from typing import Optional, Union, List, Tuple
+from typing import Optional, List, Tuple
 
 from httpx import AsyncClient
 
@@ -130,14 +129,8 @@ class NetSchoolAPI:
             student = diary["students"][diary["currentStudentId"]]
             self._user_id = student["studentId"]
 
-            # К сожалению, мы не можем получить year_id более лёгким способом.
-            # Возможно, никогда не сможем, т.к. это значение нельзя получить
-            # через API. По крайней мере мы пока не нашли способ.
-            response = (await client.post(
-                "/angular/school/studentdiary/",
-                data={"at": response["at"], "ver": login_data["ver"]},
-            )).text
-            self._year_id = int(search(r'yearId = "(\d+)"', response, U).group(1))
+            year = (await client.get("webapi/years/current")).json()
+            self._year_id = year["id"]
 
     async def _logout(self):
         """Выход из сессии."""
