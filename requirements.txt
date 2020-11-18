@@ -1,3 +1,2 @@
-dacite
-python-dateutil
 httpx
+dataclasses-json

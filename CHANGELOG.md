@@ -121,6 +121,3 @@
 * add city and oo selection ([82f72c4](https://github.com/nm17/netschoolapi/commit/82f72c48b5b8cf73ef80252a5b295db49cdf36bb))
 * add hits counter ([abced4c](https://github.com/nm17/netschoolapi/commit/abced4cd9512e8612fb2b2fe4dd4d03a46b489f1))
 * add logout ([ff96c48](https://github.com/nm17/netschoolapi/commit/ff96c48e2a98895fa59d14530a49418a2ef61682))
-
-
-
