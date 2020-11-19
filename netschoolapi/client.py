@@ -135,7 +135,9 @@ class NetSchoolAPI:
     async def _logout(self):
         """Выход из сессии."""
         async with self._client as client:
-            await client.post("/asp/logout.asp")
+            # Не нужно это терять.
+            # ver = int(datetime.now().timestamp() % 897695341)
+            await client.post("/asp/logout.asp", params={"at": client.headers["at"]})
 
     async def __aenter__(self) -> "NetSchoolAPI":
         await self._login()
