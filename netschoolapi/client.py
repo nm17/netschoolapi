@@ -78,12 +78,12 @@ class NetSchoolAPI:
             response = await client.get(f"student/diary/assigns/{assignment.id}")
             return data.DetailedAssignment.from_dict(response.json())
 
-    async def get_attachments(self, assignment: data.Assignment) -> List[data.Attachment]:
+    async def get_attachments(self, assignments: List[data.Assignment]) -> List[data.Attachment]:
         async with self._client as client:
             response = await client.post(
                 "student/diary/get-attachments",
                 params={"studentId": self._user_id},
-                json={"assignId": assignment.id},
+                json={"assignId": [a.id for a in assignments]},
             )
             return [data.Attachment.from_dict(a) for a in response.json()]
 
