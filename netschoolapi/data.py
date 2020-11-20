@@ -1,125 +1,11 @@
-from dataclasses import dataclass
-from typing import List, Optional, Any
+from dataclasses import dataclass, field
+from datetime import datetime, date, time
+from typing import Optional, List
+
+from dataclasses_json import dataclass_json, config, LetterCase
 
 
-@dataclass
-class LoginFormData:
-    CID: int
-    SID: int
-    PID: int
-    CN: int
-    SFT: int
-    SCID: int
-
-
-@dataclass
-class Mark:
-    assignmentId: int
-    studentId: int
-    mark: Optional[int]
-    dutyMark: bool
-
-
-@dataclass
-class SubjectGroup:
-    id: int
-    name: str
-
-
-@dataclass
-class User:
-    id: int
-    fio: str
-    nickName: str
-
-
-@dataclass
-class Teacher:
-    id: int
-    name: str
-
-
-@dataclass
-class Attachment:
-    id: int
-    name: Optional[str]
-    originalFileName: str
-    description: Optional[str]
-
-
-@dataclass
-class LessonAttachments:
-    assignmentId: int
-    attachments: List[Attachment]
-    answerFiles: List[Any]
-
-
-@dataclass
-class AssignmentInfo:
-    id: int
-    assignmentName: str
-    activityName: Optional[str]
-    problemName: Optional[str]
-    subjectGroup: SubjectGroup
-    teacher: Teacher
-    productId: Optional[int]
-    isDeleted: bool
-    weight: int
-    date: str
-    description: str
-    attachments: List[Attachment]
-
-
-@dataclass
-class Assignment:
-    mark: Optional[Mark]
-    id: int
-    typeId: int
-    assignmentName: str
-    dueDate: str
-    weight: int
-
-
-@dataclass
-class Lesson:
-    classmeetingId: int
-    day: str
-    number: int
-    room: Optional[str]
-    relay: int
-    startTime: Optional[str]
-    endTime: Optional[str]
-    subjectName: Optional[str]
-    assignments: Optional[List[Assignment]]
-
-
-@dataclass
-class Day:
-    date: str
-    lessons: List[Lesson]
-
-
-@dataclass
-class Diary:
-    weekStart: str
-    weekEnd: str
-    weekDays: List[Day]
-    termName: str
-    className: str
-
-
-@dataclass
-class Announcement:
-    description: str
-    postDate: str
-    deleteDate: Optional[str]
-    author: User
-    attachments: List[Attachment]
-    id: int
-    name: str
-    recipientInfo: Optional[str]
-
-
+# Некоторые ключи пропущены, и это не ошибка.
 ASSIGNMENT_TYPES = {
     1: "Практическая работа",
     2: "Тематическая работа",
@@ -155,3 +41,95 @@ ASSIGNMENT_TYPES = {
     37: "Контроль лексеки",
     38: "Устный развернутый ответ",
 }
+
+DATETIME_DECODER = datetime.fromisoformat
+DATE_DECODER = lambda d: (datetime.fromisoformat(d).date())
+TIME_DECODER = time.fromisoformat
+
+
+@dataclass_json(letter_case=LetterCase.CAMEL)
+@dataclass(frozen=True)
+class Attachment:
+    """Приложение. В терминах СГО: прикреплённый файл к домашнему заданию."""
+
+    id: int
+    file_name: str
+    name: Optional[str] = None
+
+
+@dataclass_json(letter_case=LetterCase.CAMEL)
+@dataclass(frozen=True)
+class DetailedAssignment:
+    id: int
+    assignment_name: str
+    activity_name: Optional[str]
+    problem_name: Optional[str]
+    subject: str = field(metadata=config(
+        decoder=lambda s: s["name"], field_name="subjectGroup",
+    ))
+    is_deleted: bool
+    day: date = field(metadata=config(decoder=DATE_DECODER, field_name="date"))
+    description: str
+    teacher: str = field(metadata=config(decoder=lambda t: t["name"]))
+
+
+@dataclass_json()
+@dataclass(frozen=True)
+class Assignment:
+    """То же самое, что строчка в дневнике."""
+
+    id: int
+    type: str = field(metadata=config(
+        decoder=lambda at: ASSIGNMENT_TYPES[at], field_name="typeId",
+    ))
+    name: str = field(metadata=config(field_name="assignmentName"))
+    mark: Optional[int] = field(metadata=config(
+        decoder=lambda m: m["mark"] if m else None,
+    ))
+    deadline: Optional[date] = field(metadata=config(
+        decoder=DATE_DECODER, field_name="dueDate",
+    ))
+
+
+@dataclass_json(letter_case=LetterCase.CAMEL)
+@dataclass(frozen=True)
+class Lesson:
+
+    subject: str = field(metadata=config(field_name="subjectName"))
+    day: date = field(metadata=config(decoder=DATE_DECODER))
+    starts_at: time = field(metadata=config(decoder=TIME_DECODER, field_name="startTime"))
+    ends_at: time = field(metadata=config(decoder=TIME_DECODER, field_name="endTime"))
+    number: int
+    # relay: int  # Даже не знаю, зачем он может быть нужен
+    room: Optional[int]
+    assignments: Optional[List[Assignment]] = field(default_factory=list)
+
+
+@dataclass_json(letter_case=LetterCase.CAMEL)
+@dataclass(frozen=True)
+class WeekDay:
+
+    day: date = field(metadata=config(decoder=DATE_DECODER, field_name="date"))
+    lessons: List[Lesson]
+
+
+@dataclass_json(letter_case=LetterCase.CAMEL)
+@dataclass(frozen=True)
+class Diary:
+
+    week_start: date = field(metadata=config(decoder=DATE_DECODER))
+    week_end: date = field(metadata=config(decoder=DATE_DECODER))
+    schedule: List[WeekDay] = field(metadata=config(field_name="weekDays"))
+
+
+@dataclass_json(letter_case=LetterCase.CAMEL)
+@dataclass(frozen=True)
+class Announcement:
+    id: int
+    name: str
+    description: str
+    posted_at: date = field(metadata=config(decoder=DATE_DECODER, field_name="postDate"))
+    delete_date: Optional[date] = field(metadata=config(decoder=DATE_DECODER))
+    # author: User
+    # recipientInfo: Optional[str]
+    attachments: Optional[List[Attachment]] = field(default_factory=list)
