@@ -24,7 +24,7 @@ class NetSchoolAPI:
             school (Tuple[str]): Адрес школы.
         """
         self._client = AsyncClient(
-            base_url=url.rstrip("/"),
+            base_url=f'{url.rstrip("/")}/webapi',
             headers={"user-agent": _USER_AGENT, "Referer": url},
         )
         self._user_name = user_name
@@ -52,7 +52,7 @@ class NetSchoolAPI:
         async with self._client as client:
 
             response = await client.get(
-                "/webapi/student/diary",
+                "student/diary",
                 params={
                     "studentId": self._user_id,
                     "weekStart": week_start.isoformat(),
@@ -63,25 +63,25 @@ class NetSchoolAPI:
 
             return data.Diary.from_dict(response.json())
 
-    async def get_announcements(self) -> List[data.Announcement]:
+    async def get_announcements(self, take: Optional[int] = -1) -> List[data.Announcement]:
         """Получить все объявления.
 
         Returns:
             List[data.Announcement]: Список объявлений.
         """
         async with self._client as client:
-            announcements = (await client.post("/webapi/announcements?take=-1")).json()
+            announcements = (await client.get("announcements", params={"take": take})).json()
             return [data.Announcement.from_dict(a) for a in announcements]
 
     async def get_details(self, assignment: data.Assignment) -> data.DetailedAssignment:
         async with self._client as client:
-            response = await client.get(f"webapi/student/diary/assigns/{assignment.id}")
+            response = await client.get(f"student/diary/assigns/{assignment.id}")
             return data.DetailedAssignment.from_dict(response.json())
 
     async def get_attachments(self, assignment: data.Assignment) -> List[data.Attachment]:
         async with self._client as client:
             response = await client.post(
-                "/webapi/student/diary/get-attachments",
+                "student/diary/get-attachments",
                 params={"studentId": self._user_id},
                 json={"assignId": assignment.id},
             )
@@ -96,7 +96,7 @@ class NetSchoolAPI:
             NetSchoolAPIError: При прочих ошибках.
         """
         async with self._client as client:
-            login_data = (await client.post("webapi/auth/getdata")).json()
+            login_data = (await client.post("auth/getdata")).json()
             salt = login_data.pop("salt")
 
             encoded_password = md5(self._password.encode("windows-1251")).hexdigest().encode()
@@ -104,7 +104,7 @@ class NetSchoolAPI:
             pw = pw2[: len(self._password)]
 
             response = (await client.post(
-                "/webapi/login",
+                "login",
                 data={
                     "logintype": 1,
                     **(await _get_login_form(client, self._school)),
@@ -125,16 +125,14 @@ class NetSchoolAPI:
             # Access Token
             client.headers["at"] = response["at"]
 
-            context = (await client.get("webapi/context")).json()
+            context = (await client.get("context")).json()
             self._user_id = context["userId"]
             self._year_id = context["schoolYearId"]
 
     async def _logout(self):
         """Выход из сессии."""
         async with self._client as client:
-            # Не нужно это терять.
-            # ver = int(datetime.now().timestamp() % 897695341)
-            await client.post("/asp/logout.asp", params={"at": client.headers["at"]})
+            await client.post("auth/logout")
 
     async def __aenter__(self) -> "NetSchoolAPI":
         await self._login()
