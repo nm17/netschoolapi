@@ -25,7 +25,7 @@ async def _get_login_form(client: AsyncClient,
     #   - Округ/район
     #   - и т.д.
     for last_name, x in zip(queue, school_address):
-        response = await client.get("webapi/loginform", params={**login_form, "lastname": last_name})
+        response = await client.get("loginform", params={**login_form, "lastname": last_name})
 
         for item in response.json()["items"]:
             if item["name"] == x:
