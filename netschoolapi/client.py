@@ -125,8 +125,11 @@ class NetSchoolAPI:
             # Access Token
             client.headers["at"] = response["at"]
 
+            diary = (await client.get("student/diary/init")).json()
+            student = diary["students"][diary["currentStudentId"]]
+            self._user_id = student["studentId"]
+
             context = (await client.get("context")).json()
-            self._user_id = context["userId"]
             self._year_id = context["schoolYearId"]
 
     async def _logout(self):
