@@ -12,10 +12,10 @@
 
 ## :handshake: Вклады в проект
 
-Вклады, вопросы и пожелания приветствуются!  
-Не стесняйтесь проверять [страницу вопросов](https://github.com/nm17/netschoolapi/issues).
+Вклады, вопросы и пожелания можно высказать в [чате](https://t.me/netschoolapi) проекта в Телеграме
+или во вкладке [Issues](https://github.com/nm17/netschoolapi/issues).
 
 ## :balance_scale: Лицензия
 
-Copyright © 2020 [Даниил Николаев](https://github.com/nm17).<br />
-Этот проект использует [MIT](https://mit-license.org/) лицензию.
+Copyright © 2020 Даниил Николаев, Иван Горланов, Елисей Власенко.
+Прокект находится под лицензией [MIT](LICENSE).
