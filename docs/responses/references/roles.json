@@ -1,0 +1,92 @@
+[
+    {
+        "id":1,
+        "key":"Admin",
+        "name":"Администратор",
+        "shortName":"ADM"
+    },
+    {
+        "id":2,
+        "key":"Principal",
+        "name":"Завуч",
+        "shortName":"PRC"
+    },
+    {
+        "id":3,
+        "key":"Teacher",
+        "name":"Учитель",
+        "shortName":"TCH"
+    },
+    {
+        "id":4,
+        "key":"Student",
+        "name":"Ученик",
+        "shortName":"STD"
+    },
+    {
+        "id":5,
+        "key":"Parent",
+        "name":"Родитель",
+        "shortName":"PRT"
+    },
+    {
+        "id":6,
+        "key":"MinorStaff",
+        "name":"Технич. персонал",
+        "shortName":"TCS"
+    },
+    {
+        "id":7,
+        "key":"Secretary",
+        "name":"Секретарь",
+        "shortName":"SCT"
+    },
+    {
+        "id":8,
+        "key":"MedicalStaff",
+        "name":"Мед. работник",
+        "shortName":"MDS"
+    },
+    {
+        "id":9,
+        "key":"Psychologist",
+        "name":"Психолог / социальный педагог",
+        "shortName":"PYS"
+    },
+    {
+        "id":10,
+        "key":"SpecialistStaff",
+        "name":"Специалист по кадрам",
+        "shortName":"SPS"
+    },
+    {
+        "id":11,
+        "key":"EmAdmin",
+        "name":"Администратор УО",
+        "shortName":"ADMEM"
+    },
+    {
+        "id":12,
+        "key":"EMHDEM",
+        "name":"Начальник УО",
+        "shortName":"HDEM"
+    },
+    {
+        "id":13,
+        "key":"EmOFREM",
+        "name":"Сотрудник УО",
+        "shortName":"OFREM"
+    },
+    {
+        "id":14,
+        "key":"EmOper",
+        "name":"Оператор УО",
+        "shortName":"Оператор УО"
+    },
+    {
+        "id":15,
+        "key":"EmCoordOD",
+        "name":"Координатор ОД",
+        "shortName":"CRDOD"
+    }
+]

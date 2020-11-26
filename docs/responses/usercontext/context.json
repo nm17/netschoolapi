@@ -1,0 +1,56 @@
+{
+    // Все уникальные значения изменены на `-1`.
+
+    "at":"Access Token. Как обычный токен, но уникальный для каждой сессии.",
+    "userId":-1,
+    "funcType":"School",
+    "schoolId":-1,
+    "schoolYearId":-1, // Для каждого учебного года в каждой школе уникальный.
+    "globalYearId":20, // Документация писалась в 2020 году.
+    "emId":null,
+    "productName":"Сетевой Город. Образование",
+    "userLanguage":"",
+    "version":"4.70.53523",
+    "versionDate":null,
+    "organizationName":"Хогвартс",
+    "menuContext":{
+
+    },
+    "rights":[
+        "arCalendarViewSelf",
+        "arReportsViewForAssignedClass",
+        "arAnnouncementView",
+        "arMessagesSendReceive",
+        "arAssignmentsViewComplete",
+        "arLAViewMaterials",
+        "arForumSendReceive",
+        "arSchoolPublicDocsView"
+    ],
+    "roles":[
+        "Parent"
+    ],
+    "schoolyear":{
+        "globalYear":{
+            "startDate":"2020-09-01T00:00:00",
+            "endDate":"2021-08-31T00:00:00",
+            "id":20,
+            "name":"2020/2021"
+        },
+        "schoolId":-1,
+        "startDate":"2020-09-01T00:00:00",
+        "endDate":"2021-08-31T00:00:00",
+        "closed":"Open",
+        "id":-1,
+        "name":"2020/2021"
+    },
+    "user":{
+        "id":-1,
+        "name":"Поттер Г. С."
+    },
+    "organization":{
+        "id":-1,
+        "name":"Хогвартс"
+    },
+    "dateFormat":"d\u0001mm\u0001yy\u0001.",
+    "timeFormat":"h\u0001mm\u0001:\u0001\u0001"
+}
