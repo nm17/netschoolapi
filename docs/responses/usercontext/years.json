@@ -1,0 +1,72 @@
+[
+    {
+        "globalYear":{
+            "startDate":"2020-09-01T00:00:00",
+            "endDate":"2021-08-31T00:00:00",
+            "id":20,
+            "name":"2020/2021"
+        },
+        "schoolId":-1,
+        "startDate":"2020-09-01T00:00:00",
+        "endDate":"2021-08-31T00:00:00",
+        "closed":"Open",
+        "id":-1,
+        "name":"2020/2021"
+    },
+    {
+        "globalYear":{
+            "startDate":"2019-09-01T00:00:00",
+            "endDate":"2020-08-31T00:00:00",
+            "id":19,
+            "name":"2019/2020"
+        },
+        "schoolId":-1,
+        "startDate":"2019-09-01T00:00:00",
+        "endDate":"2020-08-31T00:00:00",
+        "closed":"Closed",
+        "id":-1,
+        "name":"(*) 2019/2020"
+    },
+    {
+        "globalYear":{
+            "startDate":"2018-09-01T00:00:00",
+            "endDate":"2019-08-31T00:00:00",
+            "id":18,
+            "name":"2018/2019"
+        },
+        "schoolId":-1,
+        "startDate":"2018-09-01T00:00:00",
+        "endDate":"2019-08-31T00:00:00",
+        "closed":"Closed",
+        "id":-1,
+        "name":"(*) 2018/2019"
+    },
+    {
+        "globalYear":{
+            "startDate":"2017-09-01T00:00:00",
+            "endDate":"2018-08-31T00:00:00",
+            "id":17,
+            "name":"2017/2018"
+        },
+        "schoolId":-1,
+        "startDate":"2017-09-01T00:00:00",
+        "endDate":"2018-08-31T00:00:00",
+        "closed":"Closed",
+        "id":-1,
+        "name":"(*) 2017/2018"
+    },
+    {
+        "globalYear":{
+            "startDate":"2016-09-01T00:00:00",
+            "endDate":"2017-08-31T00:00:00",
+            "id":16,
+            "name":"2016/2017"
+        },
+        "schoolId":-1,
+        "startDate":"2016-09-01T00:00:00",
+        "endDate":"2017-08-31T00:00:00",
+        "closed":"Closed",
+        "id":-1,
+        "name":"(*) 2016/2017"
+    }
+]

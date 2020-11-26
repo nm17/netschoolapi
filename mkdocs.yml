@@ -1,0 +1,6 @@
+site_name: Документация netschoolapi
+theme: readthedocs
+
+nav:
+  - netschoolapi: 'index.md'
+  - 'examples.md'

@@ -104,6 +104,12 @@ class Lesson:
     room: Optional[int]
     assignments: Optional[List[Assignment]] = field(default_factory=list)
 
+    @property
+    def mark(self):
+        for assignment in self.assignments:
+            if assignment.mark:
+                return assignment.mark
+
 
 @dataclass_json(letter_case=LetterCase.CAMEL)
 @dataclass(frozen=True)

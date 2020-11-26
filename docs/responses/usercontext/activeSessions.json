@@ -1,0 +1,44 @@
+[
+    {
+        "schoolId":-1,
+        "eoName":null,
+        "at":null,
+        "userId":-1,
+        "loginName":null,
+        "nickName":"Сергей Красноглазый",
+        "loginTime":null,
+        "lastAccessTime":"0001-01-01T00:00:00",
+        "ip":null,
+        "roles":"Ученик",
+        "eMs":"Район N",
+        "timeOut":3600
+    },
+    {
+        "schoolId":-1,
+        "eoName":null,
+        "at":null,
+        "userId":-1,
+        "loginName":null,
+        "nickName":"Крюк А. Ю.",
+        "loginTime":null,
+        "lastAccessTime":"0001-01-01T00:00:00",
+        "ip":null,
+        "roles":"Родитель",
+        "eMs":"Район N",
+        "timeOut":900
+    },
+    {
+        "schoolId":-1,
+        "eoName":null,
+        "at":null,
+        "userId":-1,
+        "loginName":null,
+        "nickName":"Семицветов Л. К.",
+        "loginTime":null,
+        "lastAccessTime":"0001-01-01T00:00:00",
+        "ip":null,
+        "roles":"Родитель",
+        "eMs":"Район N",
+        "timeOut":900
+    }
+]
