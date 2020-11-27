@@ -7,7 +7,7 @@ from httpx import AsyncClient
 from . import data
 from . import exceptions
 from .login_form import _get_login_form
-from .utils import _USER_AGENT
+from .utils import _USER_AGENT, _json_or_panic
 
 
 class NetSchoolAPI:
@@ -58,7 +58,7 @@ class NetSchoolAPI:
 
         async with self._client as client:
 
-            response = await client.get(
+            dairy = _json_or_panic(await client.get(
                 "student/diary",
                 params={
                     "studentId": self._user_id,
@@ -66,9 +66,9 @@ class NetSchoolAPI:
                     "weekEnd": week_end.isoformat(),
                     "yearId": self._year_id,
                 },
-            )
+            ))
 
-            return data.Diary.from_dict(response.json())
+            return data.Diary.from_dict(dairy)
 
     async def get_announcements(self, take: Optional[int] = -1) -> List[data.Announcement]:
         """Получить все объявления.
@@ -77,22 +77,24 @@ class NetSchoolAPI:
             List[data.Announcement]: Список объявлений.
         """
         async with self._client as client:
-            announcements = (await client.get("announcements", params={"take": take})).json()
+            announcements = _json_or_panic(await client.get("announcements", params={"take": take}))
             return [data.Announcement.from_dict(a) for a in announcements]
 
     async def get_details(self, assignment: data.Assignment) -> data.DetailedAssignment:
         async with self._client as client:
-            response = await client.get(f"student/diary/assigns/{assignment.id}")
-            return data.DetailedAssignment.from_dict(response.json())
+            details = _json_or_panic(
+                await client.get(f"student/diary/assigns/{assignment.id}")
+            )
+            return data.DetailedAssignment.from_dict(details)
 
     async def get_attachments(self, assignments: List[data.Assignment]) -> List[data.Attachment]:
         async with self._client as client:
-            response = await client.post(
+            attachments = _json_or_panic(await client.post(
                 "student/diary/get-attachments",
                 params={"studentId": self._user_id},
                 json={"assignId": [a.id for a in assignments]},
-            )
-            return [data.Attachment.from_dict(a) for a in response.json()]
+            ))
+            return [data.Attachment.from_dict(a) for a in attachments]
 
     async def _login(self):
         """Вход в СГО.
@@ -103,14 +105,14 @@ class NetSchoolAPI:
             NetSchoolAPIError: При прочих ошибках.
         """
         async with self._client as client:
-            login_data = (await client.post("auth/getdata")).json()
+            login_data = _json_or_panic(await client.post("auth/getdata"))
             salt = login_data.pop("salt")
 
             encoded_password = md5(self._password.encode("windows-1251")).hexdigest().encode()
             pw2 = md5(salt.encode() + encoded_password).hexdigest()
             pw = pw2[: len(self._password)]
 
-            response = (await client.post(
+            response = _json_or_panic(await client.post(
                 "login",
                 data={
                     "logintype": 1,
@@ -120,8 +122,9 @@ class NetSchoolAPI:
                     "pw2": pw2,
                     **login_data,
                 },
-            )).json()
+            ))
 
+            # at — access token
             if "at" not in response:
                 error_message = response["message"]
                 if len(error_message) == 29:
@@ -129,14 +132,13 @@ class NetSchoolAPI:
                 else:
                     raise exceptions.NetSchoolAPIError(error_message)
 
-            # Access Token
             client.headers["at"] = response["at"]
 
-            diary = (await client.get("student/diary/init")).json()
+            diary = _json_or_panic(await client.get("student/diary/init"))
             student = diary["students"][diary["currentStudentId"]]
             self._user_id = student["studentId"]
 
-            context = (await client.get("context")).json()
+            context = _json_or_panic(await client.get("context"))
             self._year_id = context["schoolYearId"]
 
     async def _logout(self):

@@ -3,6 +3,7 @@ from typing import Dict, Tuple
 from httpx import AsyncClient
 
 from . import exceptions
+from .utils import _json_or_panic
 
 
 async def _get_login_form(client: AsyncClient,
@@ -25,9 +26,9 @@ async def _get_login_form(client: AsyncClient,
     #   - Округ/район
     #   - и т.д.
     for last_name, x in zip(queue, school_address):
-        response = await client.get("loginform", params={**login_form, "lastname": last_name})
+        items = _json_or_panic(await client.get("loginform", params={**login_form, "lastname": last_name}))
 
-        for item in response.json()["items"]:
+        for item in items["items"]:
             if item["name"] == x:
                 login_form.update({queue[last_name]: item["id"]})
                 break
