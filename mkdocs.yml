@@ -9,11 +9,14 @@ repo_name: 'netschoolapi'
 markdown_extensions:
   - admonition
   - attr_list
+  - toc:
+      permalink: True
 
 nav:
-  - 'netschoolapi': 'index.md'
+  - Введение: 'index.md'
+  - Примеры использования: 'examples.md'
 
 theme: 'readthedocs'
 
 extra:
-  version: 0.0.1
+  version: 0.0.2
