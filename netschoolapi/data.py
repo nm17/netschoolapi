@@ -38,7 +38,7 @@ ASSIGNMENT_TYPES = {
     34: "Изложение с элементами сочинения",
     35: "Контроль аудирования",
     36: "Контроль грамматики",
-    37: "Контроль лексеки",
+    37: "Контроль лексики",
     38: "Устный развернутый ответ",
 }
 
@@ -100,7 +100,6 @@ class Lesson:
     starts_at: time = field(metadata=config(decoder=TIME_DECODER, field_name="startTime"))
     ends_at: time = field(metadata=config(decoder=TIME_DECODER, field_name="endTime"))
     number: int
-    # relay: int  # Даже не знаю, зачем он может быть нужен
     room: Optional[int]
     assignments: Optional[List[Assignment]] = field(default_factory=list)
 
@@ -130,6 +129,4 @@ class Announcement:
     description: str
     posted_at: date = field(metadata=config(decoder=DATE_DECODER, field_name="postDate"))
     delete_date: Optional[date] = field(metadata=config(decoder=DATE_DECODER))
-    # author: User
-    # recipientInfo: Optional[str]
     attachments: Optional[List[Attachment]] = field(default_factory=list)
