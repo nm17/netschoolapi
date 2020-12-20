@@ -42,9 +42,18 @@ ASSIGNMENT_TYPES = {
     38: "Устный развернутый ответ",
 }
 
-DATETIME_DECODER = datetime.fromisoformat
-DATE_DECODER = lambda d: (datetime.fromisoformat(d).date())
-TIME_DECODER = time.fromisoformat
+_ABSENCE_REASONS = {
+    1: {'mark': 'ОТ', 'name': 'Отсутствовал'},
+    2: {'mark': 'УП', 'name': 'Пропуск по уважительной причине'},
+    3: {'mark': 'Б', 'name': 'Пропуск по болезни'},
+    4: {'mark': 'НП', 'name': 'Пропуск по неуважительной причине'},
+    5: {'mark': 'ОП', 'name': 'Опоздал'},
+    6: {'mark': 'ОСВ', 'name': 'Освобожден'},
+}
+
+_DATETIME_DECODER = datetime.fromisoformat
+_DATE_DECODER = lambda d: (datetime.fromisoformat(d).date())
+_TIME_DECODER = time.fromisoformat
 
 
 @dataclass_json(letter_case=LetterCase.CAMEL)
@@ -68,7 +77,7 @@ class DetailedAssignment:
         decoder=lambda s: s["name"], field_name="subjectGroup",
     ))
     is_deleted: bool
-    day: date = field(metadata=config(decoder=DATE_DECODER, field_name="date"))
+    day: date = field(metadata=config(decoder=_DATE_DECODER, field_name="date"))
     description: str
     teacher: str = field(metadata=config(decoder=lambda t: t["name"]))
 
@@ -87,7 +96,7 @@ class Assignment:
         decoder=lambda m: m["mark"] if m else None,
     ))
     deadline: Optional[date] = field(metadata=config(
-        decoder=DATE_DECODER, field_name="dueDate",
+        decoder=_DATE_DECODER, field_name="dueDate",
     ))
 
 
@@ -96,9 +105,9 @@ class Assignment:
 class Lesson:
 
     subject: str = field(metadata=config(field_name="subjectName"))
-    day: date = field(metadata=config(decoder=DATE_DECODER))
-    starts_at: time = field(metadata=config(decoder=TIME_DECODER, field_name="startTime"))
-    ends_at: time = field(metadata=config(decoder=TIME_DECODER, field_name="endTime"))
+    day: date = field(metadata=config(decoder=_DATE_DECODER))
+    starts_at: time = field(metadata=config(decoder=_TIME_DECODER, field_name="startTime"))
+    ends_at: time = field(metadata=config(decoder=_TIME_DECODER, field_name="endTime"))
     number: int
     room: Optional[int]
     assignments: Optional[List[Assignment]] = field(default_factory=list)
@@ -124,7 +133,7 @@ class Lesson:
 @dataclass(frozen=True)
 class WeekDay:
 
-    day: date = field(metadata=config(decoder=DATE_DECODER, field_name="date"))
+    day: date = field(metadata=config(decoder=_DATE_DECODER, field_name="date"))
     lessons: List[Lesson]
 
 
@@ -132,8 +141,8 @@ class WeekDay:
 @dataclass(frozen=True)
 class Diary:
 
-    week_start: date = field(metadata=config(decoder=DATE_DECODER))
-    week_end: date = field(metadata=config(decoder=DATE_DECODER))
+    week_start: date = field(metadata=config(decoder=_DATE_DECODER))
+    week_end: date = field(metadata=config(decoder=_DATE_DECODER))
     schedule: List[WeekDay] = field(metadata=config(field_name="weekDays"))
 
 
@@ -143,6 +152,6 @@ class Announcement:
     id: int
     name: str
     description: str
-    posted_at: date = field(metadata=config(decoder=DATE_DECODER, field_name="postDate"))
-    delete_date: Optional[date] = field(metadata=config(decoder=DATE_DECODER))
+    posted_at: date = field(metadata=config(decoder=_DATE_DECODER, field_name="postDate"))
+    delete_date: Optional[date] = field(metadata=config(decoder=_DATE_DECODER))
     attachments: Optional[List[Attachment]] = field(default_factory=list)
