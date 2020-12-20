@@ -22,5 +22,5 @@ class LoginFormError(NetSchoolAPIError):
         self._name = name
 
     def __str__(self):
-        return f"Отстутствует {self._types_declensions[self._type]} " \
+        return f"Отсутствует {self._types_declensions[self._type]} " \
                f"с названием '{self._name}'"
