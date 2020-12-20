@@ -1,10 +1,9 @@
 from json.decoder import JSONDecodeError
 from httpx import Response
 from .exceptions import NetSchoolAPIError
+from . import __version__
 
-# User-Agent, используемый netschoolapi
-# TODO auto version
-_USER_AGENT = "NetSchoolAPI/4.0.0"
+_USER_AGENT = f"NetSchoolAPI/{__version__}"
 
 
 def _json_or_panic(response: Response) -> dict:

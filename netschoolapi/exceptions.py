@@ -8,7 +8,7 @@ class LoginDataError(NetSchoolAPIError):
 
 
 class LoginFormError(NetSchoolAPIError):
-    # Для более "человечного" сообщения об ошибках
+    # Для более «человечного» сообщения об ошибках
     _types_declensions = {
         "sid": "регион",
         "pid": "округ/район",
@@ -23,4 +23,4 @@ class LoginFormError(NetSchoolAPIError):
 
     def __str__(self):
         return f"Отсутствует {self._types_declensions[self._type]} " \
-               f"с названием '{self._name}'"
+               f"с названием «{self._name}»"

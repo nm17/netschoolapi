@@ -8,11 +8,21 @@ from .utils import _json_or_panic
 
 async def _get_login_form(client: AsyncClient,
                           school_address: Tuple[str, str, str, str, str]) -> Dict[str, int]:
-    """
+    """Получение логин формы школы.
+
+    Arguments:
+        client (AsyncClient): см. `client.py/NetSchoolAPI`.
+        school_address (Tuple[str, str, str, str, str]): Адрес школы с сайта СГО.
 
     Returns:
-        Dict[str, int]: ..."""
-    login_form = {"cid": _json_or_panic(await client.get("/prepareloginform"))["cid"]}
+        Dict[str, int]: Логин форма школы.
+
+    Raises:
+        NetSchoolAPIError: При неудачном декодировании JSON`а.
+        LoginFormError: Если адрес школы указан неправильно.
+    """
+    country_id = _json_or_panic(await client.get("/prepareloginform"))["cid"]
+    login_form = {"cid": country_id}
 
     # Решений не измышляю. На данный момент — самое адекватное.
     # Кстати, чтобы упростить жизнь в миллионы раз, в API Сетевого дневника

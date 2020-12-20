@@ -21,7 +21,7 @@ class NetSchoolAPI:
             url (str): Сайт СГО.
             user_name (str): Логин ученика.
             password (str): Пароль для входа.
-            school (Tuple[str]): Адрес школы.
+            school (Tuple[str, str, str, str, str]): Адрес школы.
         """
         self._client = AsyncClient(
             base_url=f'{url.rstrip("/")}/webapi',
@@ -72,6 +72,10 @@ class NetSchoolAPI:
 
     async def get_announcements(self, take: Optional[int] = -1) -> List[data.Announcement]:
         """Получить все объявления.
+
+        Arguments:
+            take (Optional[int]): Количество объявлений, начиная с конца.
+                                  По умолчанию — -1 (все объявления).
 
         Returns:
             List[data.Announcement]: Список объявлений.
