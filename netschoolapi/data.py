@@ -103,6 +103,22 @@ class Lesson:
     room: Optional[int]
     assignments: Optional[List[Assignment]] = field(default_factory=list)
 
+    @property
+    def homework(self) -> Optional[str]:
+        if self.assignments:
+            for assignment in self.assignments:
+                if assignment.type == ASSIGNMENT_TYPES[3]:
+                    return assignment.name
+        return None
+
+    # TODO: несколько оценок за один урок?
+    @property
+    def mark(self) -> Optional[int]:
+        for assignment in self.assignments:
+            if assignment.mark:
+                return assignment.mark
+        return None
+
 
 @dataclass_json(letter_case=LetterCase.CAMEL)
 @dataclass(frozen=True)
