@@ -109,6 +109,8 @@ class NetSchoolAPI:
             NetSchoolAPIError: При прочих ошибках.
         """
         async with self._client as client:
+            client.cookies.extract_cookies((await client.get("logindata")))
+
             login_data = _json_or_panic(await client.post("auth/getdata"))
             salt = login_data.pop("salt")
 
