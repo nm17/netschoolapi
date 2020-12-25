@@ -2,7 +2,7 @@ from json.decoder import JSONDecodeError
 
 from httpx import Response
 
-from .exceptions import NetSchoolAPIError
+from netschoolapi.exceptions import NetSchoolAPIError
 
 
 def _json_or_panic(response: Response) -> dict:

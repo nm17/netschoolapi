@@ -2,8 +2,8 @@ from typing import Dict, Tuple
 
 from httpx import AsyncClient
 
-from . import exceptions
-from .utils import _json_or_panic
+from netschoolapi import exceptions
+from netschoolapi.utils import _json_or_panic
 
 
 async def _get_login_form(

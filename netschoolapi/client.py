@@ -4,9 +4,9 @@ from typing import List, Optional, Tuple
 
 from httpx import AsyncClient
 
-from . import data, exceptions, __version__
-from .login_form import _get_login_form
-from .utils import _json_or_panic
+from netschoolapi import data, exceptions
+from netschoolapi.login_form import _get_login_form
+from netschoolapi.utils import _json_or_panic
 
 
 class NetSchoolAPI:
@@ -19,7 +19,7 @@ class NetSchoolAPI:
     ) -> None:
         self._client = AsyncClient(
             base_url=f'{url.rstrip("/")}/webapi',
-            headers={"user-agent": f"NetSchoolAPI/{__version__}", "referer": url},
+            headers={"user-agent": "NetSchoolAPI/4.0.2", "referer": url},
         )
         self._user_name = user_name
         self._password = password
