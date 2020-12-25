@@ -1,31 +1,25 @@
 from datetime import date, timedelta
 from hashlib import md5
-from typing import Optional, List, Tuple
+from typing import List, Optional, Tuple
 
 from httpx import AsyncClient
 
-from . import data
-from . import exceptions
+from . import data, exceptions, __version__
 from .login_form import _get_login_form
-from .utils import _USER_AGENT, _json_or_panic
+from .utils import _json_or_panic
 
 
 class NetSchoolAPI:
-    def __init__(self,
-                 url: str,
-                 user_name: str, password: str,
-                 school: Tuple[str, str, str, str, str]):
-        """Класс, взаимодействующий с СГО.
-
-        Arguments:
-            url (str): Сайт СГО.
-            user_name (str): Логин ученика.
-            password (str): Пароль для входа.
-            school (Tuple[str, str, str, str, str]): Адрес школы.
-        """
+    def __init__(
+        self,
+        url: str,
+        user_name: str,
+        password: str,
+        school: Tuple[str, str, str, str, str],
+    ) -> None:
         self._client = AsyncClient(
             base_url=f'{url.rstrip("/")}/webapi',
-            headers={"user-agent": _USER_AGENT, "Referer": url},
+            headers={"user-agent": f"NetSchoolAPI/{__version__}", "referer": url},
         )
         self._user_name = user_name
         self._password = password
@@ -35,21 +29,11 @@ class NetSchoolAPI:
         self._user_id = None
         self._year_id = None
 
-    async def get_diary(self,
-                        week_start: Optional[date] = None,
-                        week_end: Optional[date] = None) -> data.Diary:
-        """Получить дневник.
-
-        Arguments:
-            week_start (Optional[date]): День, с которого начнётся неделя в дневнике.
-                                         По умолчанию — понедельник текущей недели.
-            week_end (Optional[date]): День, которым закончится неделя в дневнике.
-                                       По умолчанию — week_start + 5 дней.
-
-        Returns:
-            data.Diary: Дневник.
-        """
-
+    async def get_diary(
+        self,
+        week_start: Optional[date] = None,
+        week_end: Optional[date] = None
+    ) -> data.Diary:
         if not week_start:
             today = date.today()
             week_start = today - timedelta(days=today.weekday())
@@ -57,7 +41,6 @@ class NetSchoolAPI:
             week_end = week_start + timedelta(days=5)
 
         async with self._client as client:
-
             dairy = _json_or_panic(await client.get(
                 "student/diary",
                 params={
@@ -67,31 +50,29 @@ class NetSchoolAPI:
                     "yearId": self._year_id,
                 },
             ))
-
             return data.Diary.from_dict(dairy)
 
-    async def get_announcements(self, take: Optional[int] = -1) -> List[data.Announcement]:
-        """Получить все объявления.
-
-        Arguments:
-            take (Optional[int]): Количество объявлений, начиная с конца.
-                                  По умолчанию — -1 (все объявления).
-
-        Returns:
-            List[data.Announcement]: Список объявлений.
-        """
+    async def get_announcements(
+        self, take: Optional[int] = -1,
+    ) -> List[data.Announcement]:
         async with self._client as client:
-            announcements = _json_or_panic(await client.get("announcements", params={"take": take}))
+            announcements = _json_or_panic(await client.get(
+                "announcements", params={"take": take},
+            ))
             return [data.Announcement.from_dict(a) for a in announcements]
 
-    async def get_details(self, assignment: data.Assignment) -> data.DetailedAssignment:
+    async def get_details(
+        self, assignment: data.Assignment,
+    ) -> data.DetailedAssignment:
         async with self._client as client:
-            details = _json_or_panic(
-                await client.get(f"student/diary/assigns/{assignment.id}")
-            )
+            details = _json_or_panic(await client.get(
+                f"student/diary/assigns/{assignment.id}"
+            ))
             return data.DetailedAssignment.from_dict(details)
 
-    async def get_attachments(self, assignments: List[data.Assignment]) -> List[data.Attachment]:
+    async def get_attachments(
+        self, assignments: List[data.Assignment],
+    ) -> List[data.Attachment]:
         async with self._client as client:
             attachments = _json_or_panic(await client.post(
                 "student/diary/get-attachments",
@@ -100,14 +81,7 @@ class NetSchoolAPI:
             ))
             return [data.Attachment.from_dict(a) for a in attachments]
 
-    async def _login(self):
-        """Вход в СГО.
-
-        Raises:
-            LoginFormError: Если информация о школе указана неверно.
-            LoginDataError: При указании неверных логина/пароля.
-            NetSchoolAPIError: При прочих ошибках.
-        """
+    async def _login(self) -> None:
         async with self._client as client:
             login_data = _json_or_panic(await client.post("auth/getdata"))
             salt = login_data.pop("salt")
@@ -145,8 +119,7 @@ class NetSchoolAPI:
             context = _json_or_panic(await client.get("context"))
             self._year_id = context["schoolYearId"]
 
-    async def _logout(self):
-        """Выход из сессии."""
+    async def _logout(self) -> None:
         async with self._client as client:
             await client.post("auth/logout")
 
@@ -154,5 +127,5 @@ class NetSchoolAPI:
         await self._login()
         return self
 
-    async def __aexit__(self, exc_type, exc_val, exc_tb):
+    async def __aexit__(self, exc_type, exc_val, exc_tb) -> None:
         await self._logout()

@@ -1,12 +1,11 @@
 from dataclasses import dataclass, field
-from datetime import datetime, date, time
-from typing import Optional, List
+from datetime import date, datetime, time
+from typing import List, Optional
 
-from dataclasses_json import dataclass_json, config, LetterCase
+from dataclasses_json import LetterCase, config, dataclass_json
 
 
-# Некоторые ключи пропущены, и это не ошибка.
-ASSIGNMENT_TYPES = {
+_ASSIGNMENT_TYPES = {
     1: "Практическая работа",
     2: "Тематическая работа",
     3: "Домашнее задание",
@@ -42,73 +41,78 @@ ASSIGNMENT_TYPES = {
     38: "Устный развернутый ответ",
 }
 
-_ABSENCE_REASONS = {
-    1: {'mark': 'ОТ', 'name': 'Отсутствовал'},
-    2: {'mark': 'УП', 'name': 'Пропуск по уважительной причине'},
-    3: {'mark': 'Б', 'name': 'Пропуск по болезни'},
-    4: {'mark': 'НП', 'name': 'Пропуск по неуважительной причине'},
-    5: {'mark': 'ОП', 'name': 'Опоздал'},
-    6: {'mark': 'ОСВ', 'name': 'Освобожден'},
-}
+_ABSENCE_REASONS = (
+    {"mark": "ОТ", "description": "Отсутствовал"},
+    {"mark": "УП", "description": "Пропуск по уважительной причине"},
+    {"mark": "Б", "description": "Пропуск по болезни"},
+    {"mark": "НП", "description": "Пропуск по неуважительной причине"},
+    {"mark": "ОП", "description": "Опоздал"},
+    {"mark": "ОСВ", "description": "Освобожден"},
+)
 
-_DATETIME_DECODER = datetime.fromisoformat
-_DATE_DECODER = lambda d: (datetime.fromisoformat(d).date())
-_TIME_DECODER = time.fromisoformat
+
+def _datetime(iso_datetime: str) -> Optional[datetime]:
+    return datetime.fromisoformat(iso_datetime) if iso_datetime else None
+
+
+def _time(iso_time: str) -> Optional[time]:
+    return time.fromisoformat(iso_time) if iso_time else None
+
+
+def _date(iso_datetime: str) -> Optional[date]:
+    return datetime.fromisoformat(iso_datetime).date() if iso_datetime else None
 
 
 @dataclass_json(letter_case=LetterCase.CAMEL)
 @dataclass(frozen=True)
 class Attachment:
-    """Приложение. В терминах СГО: прикреплённый файл к домашнему заданию."""
-
     id: int
     file_name: str
-    name: Optional[str] = None
+    name: Optional[str]
 
 
 @dataclass_json(letter_case=LetterCase.CAMEL)
 @dataclass(frozen=True)
 class DetailedAssignment:
     id: int
+    description: str
+    subject: str = field(metadata=config(
+        decoder=lambda subject: subject["name"],
+        field_name="subjectGroup",
+    ))
     assignment_name: str
     activity_name: Optional[str]
     problem_name: Optional[str]
-    subject: str = field(metadata=config(
-        decoder=lambda s: s["name"], field_name="subjectGroup",
-    ))
     is_deleted: bool
-    day: date = field(metadata=config(decoder=_DATE_DECODER, field_name="date"))
-    description: str
-    teacher: str = field(metadata=config(decoder=lambda t: t["name"]))
+    day: date = field(metadata=config(decoder=_date, field_name="date"))
+    teacher: str = field(metadata=config(
+        decoder=lambda teacher: teacher["name"],
+    ))
 
 
 @dataclass_json()
 @dataclass(frozen=True)
 class Assignment:
-    """То же самое, что строчка в дневнике."""
-
     id: int
     type: str = field(metadata=config(
-        decoder=lambda at: ASSIGNMENT_TYPES[at], field_name="typeId",
+        decoder=lambda assignment_type: _ASSIGNMENT_TYPES[assignment_type],
+        field_name="typeId",
     ))
     name: str = field(metadata=config(field_name="assignmentName"))
     mark: Optional[int] = field(metadata=config(
-        decoder=lambda m: m["mark"] if m else None,
+        decoder=lambda mark: mark["mark"] if mark else None,
     ))
-    deadline: Optional[date] = field(metadata=config(
-        decoder=_DATE_DECODER, field_name="dueDate",
-    ))
+    deadline: Optional[date] = field(metadata=config(decoder=_date, field_name="dueDate"))
 
 
 @dataclass_json(letter_case=LetterCase.CAMEL)
 @dataclass(frozen=True)
 class Lesson:
-
-    subject: str = field(metadata=config(field_name="subjectName"))
-    day: date = field(metadata=config(decoder=_DATE_DECODER))
-    starts_at: time = field(metadata=config(decoder=_TIME_DECODER, field_name="startTime"))
-    ends_at: time = field(metadata=config(decoder=_TIME_DECODER, field_name="endTime"))
     number: int
+    subject: str = field(metadata=config(field_name="subjectName"))
+    day: date = field(metadata=config(decoder=_date))
+    starts_at: time = field(metadata=config(decoder=_time, field_name="startTime"))
+    ends_at: time = field(metadata=config(decoder=_time, field_name="endTime"))
     room: Optional[int]
     assignments: Optional[List[Assignment]] = field(default_factory=list)
 
@@ -116,7 +120,7 @@ class Lesson:
     def homework(self) -> Optional[str]:
         if self.assignments:
             for assignment in self.assignments:
-                if assignment.type == ASSIGNMENT_TYPES[3]:
+                if assignment.type == _ASSIGNMENT_TYPES[3]:
                     return assignment.name
         return None
 
@@ -132,17 +136,15 @@ class Lesson:
 @dataclass_json(letter_case=LetterCase.CAMEL)
 @dataclass(frozen=True)
 class WeekDay:
-
-    day: date = field(metadata=config(decoder=_DATE_DECODER, field_name="date"))
+    day: date = field(metadata=config(decoder=_date, field_name="date"))
     lessons: List[Lesson]
 
 
 @dataclass_json(letter_case=LetterCase.CAMEL)
 @dataclass(frozen=True)
 class Diary:
-
-    week_start: date = field(metadata=config(decoder=_DATE_DECODER))
-    week_end: date = field(metadata=config(decoder=_DATE_DECODER))
+    week_start: date = field(metadata=config(decoder=_date))
+    week_end: date = field(metadata=config(decoder=_date))
     schedule: List[WeekDay] = field(metadata=config(field_name="weekDays"))
 
 
@@ -152,6 +154,6 @@ class Announcement:
     id: int
     name: str
     description: str
-    posted_at: date = field(metadata=config(decoder=_DATE_DECODER, field_name="postDate"))
-    delete_date: Optional[date] = field(metadata=config(decoder=_DATE_DECODER))
+    posted_at: Optional[date] = field(metadata=config(decoder=_date, field_name="postDate"))
+    delete_date: Optional[date] = field(metadata=config(decoder=_date))
     attachments: Optional[List[Attachment]] = field(default_factory=list)

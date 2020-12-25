@@ -7,10 +7,10 @@ with open("README.md") as readme:
 
 setup(
     name="netschoolapi",
-    version="4.0.1",
+    version="4.0.2",
     author="nm17",
     author_email="dannevergame@gmail.com",
-    description="A fully asynchronous API wrapper for NetSchool written in Python",
+    description="Асинхронный клиент для «Сетевого города»",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/nm17/netschoolapi/",
