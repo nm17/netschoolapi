@@ -7,9 +7,11 @@ with open("README.md") as readme:
 
 setup(
     name="netschoolapi",
-    version="4.0.2",
+    version="4.0.3",
     author="nm17",
     author_email="dannevergame@gmail.com",
+    maintainer="igorlanov",
+    maintainer_email="vonalrogi@ya.ru",
     description="Асинхронный клиент для «Сетевого города»",
     long_description=long_description,
     long_description_content_type="text/markdown",
