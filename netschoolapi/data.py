@@ -128,8 +128,12 @@ class Lesson:
     @property
     def mark(self) -> Optional[int]:
         for assignment in self.assignments:
-            if assignment.mark:
-                return assignment.mark
+            try:
+                if assignment.mark:
+                    return assignment.mark
+            except KeyError:
+                pass
+
         return None
 
 
