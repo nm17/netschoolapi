@@ -1,7 +1,7 @@
 site_name: 'netschoolapi'
 site_description: 'Документация netschoolapi'
 site_author: 'Иван Горланов'
-copyright: 'Даниил Николаев, Иван Горланов'
+copyright: 'Даниил Николаев, Иван Горланов, Елисей Власенко'
 
 repo_url: 'https://github.com/nm17/netschoolapi'
 repo_name: 'netschoolapi'
@@ -12,11 +12,4 @@ markdown_extensions:
   - toc:
       permalink: True
 
-nav:
-  - Введение: 'index.md'
-  - Примеры использования: 'examples.md'
-
 theme: 'readthedocs'
-
-extra:
-  version: 0.0.2

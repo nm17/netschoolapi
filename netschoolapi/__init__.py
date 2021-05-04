@@ -1,5 +1,5 @@
-from .client import NetSchoolAPI
+from .netschoolapi import NetSchoolAPI
 
 
-__all__ = ["NetSchoolAPI"]
-__version__ = "4.0.2"
+__all__ = ['NetSchoolAPI']
+__version__ = '5.0.0a1'
