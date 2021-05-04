@@ -73,7 +73,7 @@ class NetSchoolAPI:
             assignment['id']: assignment['name'] for assignment in assignment_reference
         }
 
-    async def diary(self, start: Optional[date] = None, end: Optional[date] = None) -> dict[str, Any]:
+    async def diary(self, start: Optional[date] = None, end: Optional[date] = None) -> data.Diary:
         if not start:
             monday = date.today() - timedelta(days=date.today().weekday())
             start = monday

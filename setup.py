@@ -24,6 +24,6 @@ setup(
         'Topic :: Education',
     ],
     license='MIT',
-    install_requires=['httpx'],
+    install_requires=['httpx', 'marshmallow'],
     python_requires='>=3.9',
 )
