@@ -20,7 +20,7 @@ class Assignment:
     type: str
     content: str
     mark: Optional[int]
-    is_duty: Optional[bool]
+    is_duty: bool
     comment: str
     deadline: date
 

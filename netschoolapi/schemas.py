@@ -30,7 +30,7 @@ class Assignment(NetSchoolAPISchema):
     )
     is_duty = fields.Function(
         deserialize=lambda mark_dict: mark_dict['dutyMark'],
-        allow_none=True,
+        missing=False,
         data_key='mark',
     )
     comment = fields.Function(
