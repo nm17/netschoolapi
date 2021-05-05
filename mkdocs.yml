@@ -8,14 +8,15 @@ repo_url: https://github.com/nm17/netschoolapi
 markdown_extensions:
   - admonition
   - attr_list
-  - toc:
-      permalink: True
+  - codehilite
+  - toc
   - smarty:
       smart_angled_quotes: True
 
 nav:
   - index.md
   - guide.md
+  - reference.md
 
 theme: readthedocs
 
