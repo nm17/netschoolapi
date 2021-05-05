@@ -1,19 +1,22 @@
-from marshmallow import Schema, EXCLUDE, fields
+from marshmallow import EXCLUDE, Schema, fields
 
 
-_DATE_FORMAT_STRING = '%Y-%m-%dT00:00:00'
+__all__ = ['Assignment', 'Attachment', 'Diary']
 
 
-class Attachment(Schema):
+class NetSchoolAPISchema(Schema):
+    class Meta:
+        dateformat = '%Y-%m-%dT00:00:00'
+        unknown = EXCLUDE
+
+
+class Attachment(NetSchoolAPISchema):
     id = fields.Integer()
     name = fields.String(data_key='originalFileName')
     description = fields.String(allow_none=True, missing='')
 
-    class Meta:
-        unknown = EXCLUDE
 
-
-class Assignment(Schema):
+class Assignment(NetSchoolAPISchema):
     id = fields.Integer()
     type = fields.Function(
         deserialize=lambda type_id, context: context['assignment_types'][type_id],
@@ -35,14 +38,11 @@ class Assignment(Schema):
         missing='',
         data_key='markComment',
     )
-    deadline = fields.Date(format=_DATE_FORMAT_STRING, data_key='dueDate')
-
-    class Meta:
-        unknown = EXCLUDE
+    deadline = fields.Date(data_key='dueDate')
 
 
-class Lesson(Schema):
-    day = fields.Date(format=_DATE_FORMAT_STRING)
+class Lesson(NetSchoolAPISchema):
+    day = fields.Date()
     start = fields.Time(data_key='startTime')
     end = fields.Time(data_key='endTime')
     room = fields.String()
@@ -50,22 +50,13 @@ class Lesson(Schema):
     subject = fields.String(data_key='subjectName')
     assignments = fields.List(fields.Nested(Assignment), missing=[])
 
-    class Meta:
-        unknown = EXCLUDE
 
-
-class Day(Schema):
-    day = fields.Date(format=_DATE_FORMAT_STRING, data_key='date')
+class Day(NetSchoolAPISchema):
+    day = fields.Date(data_key='date')
     lessons = fields.List(fields.Nested(Lesson))
 
-    class Meta:
-        unknown = EXCLUDE
 
-
-class Diary(Schema):
-    start = fields.Date(format=_DATE_FORMAT_STRING, data_key='weekStart')
-    end = fields.DateTime(format=_DATE_FORMAT_STRING, data_key='weekEnd')
+class Diary(NetSchoolAPISchema):
+    start = fields.Date(data_key='weekStart')
+    end = fields.Date(data_key='weekEnd')
     schedule = fields.List(fields.Nested(Day), data_key='weekDays')
-
-    class Meta:
-        unknown = EXCLUDE

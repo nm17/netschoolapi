@@ -69,5 +69,5 @@ def _make_nested_dataclass(cls, field_values: dict[str, Any]):
     return cls(**init_kwargs)
 
 
-def diary(data):
-    return _make_nested_dataclass(Diary, data)
+def diary(diary_init_kwargs: dict[str, Any]) -> Diary:
+    return _make_nested_dataclass(Diary, diary_init_kwargs)

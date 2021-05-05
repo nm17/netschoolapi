@@ -1,6 +1,6 @@
 from datetime import date, timedelta
 from hashlib import md5
-from typing import Any, Optional, NoReturn
+from typing import Optional, NoReturn
 
 from httpx import AsyncClient, Response
 
@@ -73,7 +73,11 @@ class NetSchoolAPI:
             assignment['id']: assignment['name'] for assignment in assignment_reference
         }
 
-    async def diary(self, start: Optional[date] = None, end: Optional[date] = None) -> data.Diary:
+    async def diary(
+        self,
+        start: Optional[date] = None,
+        end: Optional[date] = None,
+    ) -> data.Diary:
         if not start:
             monday = date.today() - timedelta(days=date.today().weekday())
             start = monday
@@ -93,7 +97,11 @@ class NetSchoolAPI:
         diary_schema.context['assignment_types'] = self._assignment_types
         return data.diary(diary_schema.load(response.json()))
 
-    async def overdue(self, start: Optional[date] = None, end: Optional[date] = None) -> list[data.Assignment]:
+    async def overdue(
+        self,
+        start: Optional[date] = None,
+        end: Optional[date] = None,
+    ) -> list[data.Assignment]:
         if not start:
             monday = date.today() - timedelta(days=date.today().weekday())
             start = monday
@@ -115,16 +123,14 @@ class NetSchoolAPI:
     async def announcements(self, take: int = -1) -> NoReturn:
         raise NotImplementedError
 
-    async def details(self, assignment: data.Assignment) -> NoReturn:
-        raise NotImplementedError
-
     async def attachments(self, assignment: data.Assignment) -> list[data.Attachment]:
         response = await self._client.post(
             'student/diary/get-attachments',
             params={'studentId': self._student_id},
             json={'assignId': [assignment.id]},
         )
-        attachments = schemas.Attachment().load(response.json()[0]['attachments'], many=True)
+        attachments_json = response.json()[0]['attachments']
+        attachments = schemas.Attachment().load(attachments_json, many=True)
         return [data.Attachment(**attachment) for attachment in attachments]
 
     async def logout(self):
