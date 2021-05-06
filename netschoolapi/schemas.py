@@ -1,7 +1,8 @@
-from marshmallow import EXCLUDE, Schema, fields
+from marshmallow import EXCLUDE, Schema, fields, pre_load
+from typing import Any
 
 
-__all__ = ['Assignment', 'Attachment', 'Diary']
+__all__ = ['Assignment', 'Attachment', 'Diary', 'School']
 
 
 class NetSchoolAPISchema(Schema):
@@ -60,3 +61,25 @@ class Diary(NetSchoolAPISchema):
     start = fields.Date(data_key='weekStart')
     end = fields.Date(data_key='weekEnd')
     schedule = fields.List(fields.Nested(Day), data_key='weekDays')
+
+
+class School(NetSchoolAPISchema):
+    name = fields.String(data_key='fullSchoolName')
+    about = fields.String(data_key='about')
+
+    address = fields.String(data_key='juridicalAddress')
+    email = fields.String(data_key='email')
+    site = fields.String(data_key='web')
+    phone = fields.String(data_key='phones')
+
+    director = fields.String(data_key='director')
+    AHC = fields.String(data_key='principalAHC')
+    IT = fields.String(data_key='principalIT')
+    UVR = fields.String(data_key='principalUVR')
+
+    @pre_load
+    def unwrap_nested_dicts(self, data: dict[str, Any], **_) -> dict[str, str]:
+        data.update(data.pop('commonInfo'))
+        data.update(data.pop('contactInfo'))
+        data.update(data.pop('managementInfo'))
+        return data
