@@ -1,23 +1,20 @@
-<h1 align="center">netschoolapi</h1>
+# netschoolapi
 
-<p align="center">
-  <img src="https://img.shields.io/github/v/tag/nm17/netschoolapi" alt="Tag">
-  <img src="https://img.shields.io/pypi/dm/netschoolapi" alt="Downloads">
-</p>
+![Tag](https://img.shields.io/github/v/tag/nm17/netschoolapi)
+![Downloads](https://img.shields.io/pypi/dm/netschoolapi)
 
-## :dancing_men: Авторы
+NetSchoolAPI — это асинхронный клиент для «Сетевого города», который может получить дневник с домашними заданиями и оценками, объявления и просроченные задания.
 
-:bust_in_silhouette: [Даниил Николаев](https://github.com/nm17)
+> Библиотека не имеет отношения к «ИрТеху».
 
-:business_suit_levitating: [Иван Горланов](https://github.com/igorlanov)
+**Установка, пример проекта, описание методов и датаклассов описано в [документации](https://netschoolapi.readthedocs.io/) проекта.**
 
-:mage_man: [Елисей Власенко](https://github.com/homus32)
+## Жалобы и предложения
 
-## :handshake: Вклады в проект
+Обсуждение библиотеки ведётся в [чате](https://t.me/netschoolapi/) проекта в телеграме.
+Если вы хотите сообщить о баге или предложить фичу — создайте [ишью](https://github.com/nm17/netschoolapi/issues/).
 
-Вопросы и пожелания можно высказать в [чате](https://t.me/netschoolapi) проекта в телеграме
-или во вкладке [Issues](https://github.com/nm17/netschoolapi/issues).
+## Лицензия
 
-## :balance_scale: [Лицензия](LICENSE)
-
-Copyright © 2020 Даниил Николаев, Иван Горланов, Елисей Власенко.
+Код библиотеки распространяется под лицензией [MIT](LICENSE).
+Это значит, что вы можете копировать, распространять, изменять, публиковать и продавать код netschoolapi без разрешения её авторов. Проще говоря, развлекайтесь!

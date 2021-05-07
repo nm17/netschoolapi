@@ -1,2 +1,2 @@
 httpx
-dataclasses-json
+marshmallow
