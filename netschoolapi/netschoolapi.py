@@ -120,8 +120,10 @@ class NetSchoolAPI:
         assignments = schemas.Assignment().load(response.json(), many=True)
         return [data.Assignment(**assignment) for assignment in assignments]
 
-    async def announcements(self, take: int = -1) -> NoReturn:
-        raise NotImplementedError
+    async def announcements(self, take: Optional[int] = -1) -> list[data.Announcement]:
+        response = await self._client.get('announcements', params={'take': take})
+        announcements = schemas.Announcement().load(response.json(), many=True)
+        return [data.Announcement(**announcement) for announcement in announcements]
 
     async def attachments(self, assignment: data.Assignment) -> list[data.Attachment]:
         response = await self._client.post(

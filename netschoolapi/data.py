@@ -4,7 +4,7 @@ from types import GenericAlias
 from typing import Any, Optional, get_args, get_type_hints
 
 
-__all__ = ['Assignment', 'School', 'diary']
+__all__ = ['Assignment', 'School', 'diary', 'announcement']
 
 
 @dataclass
@@ -15,8 +15,15 @@ class Attachment:
 
 
 @dataclass
+class Announcement:
+    name: str
+    content: str
+    post_date: date
+    attachments: list[Attachment]
+
+
+@dataclass
 class Assignment:
-    id: int
     type: str
     content: str
     mark: Optional[int]
@@ -85,3 +92,7 @@ def _make_nested_dataclass(cls, field_values: dict[str, Any]):
 
 def diary(init_kwargs: dict[str, Any]) -> Diary:
     return _make_nested_dataclass(Diary, init_kwargs)
+
+
+def announcement(init_kwargs: dict[str, Any]) -> Announcement:
+    return _make_nested_dataclass(Announcement, init_kwargs)

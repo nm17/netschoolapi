@@ -1,8 +1,9 @@
-from marshmallow import EXCLUDE, Schema, fields, pre_load
 from typing import Any
 
+from marshmallow import EXCLUDE, Schema, fields, pre_load
 
-__all__ = ['Assignment', 'Attachment', 'Diary', 'School']
+
+__all__ = ['Attachment', 'Announcement', 'Assignment', 'Diary', 'School']
 
 
 class NetSchoolAPISchema(Schema):
@@ -17,8 +18,14 @@ class Attachment(NetSchoolAPISchema):
     description = fields.String(allow_none=True, missing='')
 
 
+class Announcement(NetSchoolAPISchema):
+    name = fields.String()
+    content = fields.String(data_key='description')
+    post_date = fields.Date(data_key='postDate')
+    attachments = fields.List(fields.Nested(Attachment), missing=[])
+
+
 class Assignment(NetSchoolAPISchema):
-    id = fields.Integer()
     type = fields.Function(
         deserialize=lambda type_id, context: context['assignment_types'][type_id],
         data_key='typeId',
