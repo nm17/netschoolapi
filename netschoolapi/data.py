@@ -24,6 +24,7 @@ class Announcement:
 
 @dataclass
 class Assignment:
+    id: int
     type: str
     content: str
     mark: Optional[int]
