@@ -1,6 +1,6 @@
 from datetime import date, timedelta
 from hashlib import md5
-from typing import Optional, NoReturn
+from typing import Optional
 
 from httpx import AsyncClient, Response
 
@@ -27,6 +27,12 @@ class NetSchoolAPI:
         self._year_id = -1
 
         self._assignment_types = dict[int, str]()
+
+    async def __aenter__(self) -> 'NetSchoolAPI':
+        return self
+
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        await self.logout()
 
     async def login(self, user_name: str, password: str, school: str):
         response_with_cookies = await self._client.get('logindata')
@@ -154,9 +160,3 @@ class NetSchoolAPI:
                     'scid': school_['id'],
                 }
         raise errors.SchoolNotFoundError(school)
-
-    async def __aenter__(self) -> 'NetSchoolAPI':
-        return self
-
-    async def __aexit__(self, exc_type, exc_val, exc_tb):
-        await self.logout()
