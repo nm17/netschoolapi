@@ -1,7 +1,7 @@
 # netschoolapi
 
-![Tag](https://img.shields.io/github/v/tag/nm17/netschoolapi/)
-![Downloads](https://img.shields.io/pypi/dm/netschoolapi/)
+![Tag](https://img.shields.io/github/v/tag/nm17/netschoolapi)
+![Downloads](https://img.shields.io/pypi/dm/netschoolapi)
 
 NetSchoolAPI — это асинхронный клиент для «Сетевого города», который может получить дневник с домашними заданиями и оценками, объявления и просроченные задания.
 
