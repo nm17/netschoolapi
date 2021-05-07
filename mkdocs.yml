@@ -1,5 +1,5 @@
 site_name: netschoolapi
-site_description: Документация netschoolapi
+site_description: 'Документация библиотеки netschoolapi: методы, классы и их поля'
 site_author: Иван Горланов
 copyright: Даниил Николаев, Иван Горланов, Елисей Власенко
 
@@ -21,4 +21,4 @@ nav:
 theme: readthedocs
 
 extra:
-  version: 5.0.0a1
+  version: 5.0.0
