@@ -26,6 +26,7 @@ class Announcement(NetSchoolAPISchema):
 
 
 class Assignment(NetSchoolAPISchema):
+    id = fields.Integer()
     type = fields.Function(
         deserialize=lambda type_id, context: context['assignment_types'][type_id],
         data_key='typeId',
