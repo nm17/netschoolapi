@@ -17,7 +17,7 @@ setup(
     maintainer_email='vonalrogi@ya.ru',
     url='https://github.com/nm17/netschoolapi/',
     packages=['netschoolapi'],
-    package_data={'netschoolapi': ['py.typed']}
+    package_data={'netschoolapi': ['py.typed']},
     classifiers=[
         'License :: OSI Approved :: MIT License',
         'Natural Language :: Russian',
