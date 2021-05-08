@@ -9,7 +9,8 @@ markdown_extensions:
   - admonition
   - attr_list
   - codehilite
-  - toc
+  - toc:
+      permalink: True
   - smarty:
       smart_angled_quotes: True
 
