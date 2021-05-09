@@ -64,14 +64,10 @@ class NetSchoolAPI:
 
         self._client.headers['at'] = auth_result['at']
 
-        response = await self._client.get('student/diary/init')
-        diary_info = response.json()
-        student = diary_info['students'][diary_info['currentStudentId']]
-        self._student_id = student['studentId']
-
-        response = await self._client.get('years/current')
-        year_reference = response.json()
-        self._year_id = year_reference['id']
+        responce = await self._client.get('context')
+        context = responce.json()
+        self._student_id = context['userId']
+        self._year_id = context['schoolYearId']
 
         response = await self._client.get('grade/assignment/types', params={'all': False})
         assignment_reference = response.json()
