@@ -32,16 +32,8 @@ class Assignment(NetSchoolAPISchema):
         data_key='typeId',
     )
     content = fields.String(data_key='assignmentName')
-    mark = fields.Function(
-        deserialize=lambda mark_dict: mark_dict['mark'],
-        allow_none=True,
-        data_key='mark',
-    )
-    is_duty = fields.Function(
-        deserialize=lambda mark_dict: mark_dict['dutyMark'],
-        missing=False,
-        data_key='mark',
-    )
+    mark = fields.Integer(allow_none=True, data_key='mark')
+    is_duty = fields.Boolean(data_key='dutyMark')
     comment = fields.Function(
         deserialize=lambda mark_comment: mark_comment['name'],
         missing='',
@@ -49,12 +41,22 @@ class Assignment(NetSchoolAPISchema):
     )
     deadline = fields.Date(data_key='dueDate')
 
+    @pre_load
+    def unwrap_marks(self, assignment: dict[str, Any], **_) -> dict[str, str]:
+        mark = assignment.pop('mark')
+        if mark:
+            assignment.update(mark)
+        else:
+            assignment.update({'mark': None, 'dutyMark': False})
+        return assignment
+
+
 
 class Lesson(NetSchoolAPISchema):
     day = fields.Date()
     start = fields.Time(data_key='startTime')
     end = fields.Time(data_key='endTime')
-    room = fields.String()
+    room = fields.String(missing='')
     number = fields.Integer()
     subject = fields.String(data_key='subjectName')
     assignments = fields.List(fields.Nested(Assignment), missing=[])
@@ -86,8 +88,8 @@ class School(NetSchoolAPISchema):
     UVR = fields.String(data_key='principalUVR')
 
     @pre_load
-    def unwrap_nested_dicts(self, data: dict[str, Any], **_) -> dict[str, str]:
-        data.update(data.pop('commonInfo'))
-        data.update(data.pop('contactInfo'))
-        data.update(data.pop('managementInfo'))
-        return data
+    def unwrap_nested_dicts(self, school: dict[str, Any], **_) -> dict[str, str]:
+        school.update(school.pop('commonInfo'))
+        school.update(school.pop('contactInfo'))
+        school.update(school.pop('managementInfo'))
+        return school

@@ -19,7 +19,7 @@ class NetSchoolAPI:
         url = url.rstrip('/')
         self._client = AsyncClient(
             base_url='{0}/webapi'.format(url),
-            headers={'user-agent': 'NetSchoolAPI/5.0.0', 'referer': url},
+            headers={'user-agent': 'NetSchoolAPI/5.0.1', 'referer': url},
             event_hooks={'response': [_die_on_bad_status]},
         )
 
