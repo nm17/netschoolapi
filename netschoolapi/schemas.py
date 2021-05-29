@@ -43,13 +43,12 @@ class Assignment(NetSchoolAPISchema):
 
     @pre_load
     def unwrap_marks(self, assignment: dict[str, Any], **_) -> dict[str, str]:
-        mark = assignment.pop('mark')
+        mark = assignment.pop('mark', None)
         if mark:
             assignment.update(mark)
         else:
             assignment.update({'mark': None, 'dutyMark': False})
         return assignment
-
 
 
 class Lesson(NetSchoolAPISchema):

@@ -125,7 +125,6 @@ datetime.date(2021, 4, 21)
 * `post_date: date` --- дата, когда объявление было загружено на сайт
 * `attachments: list[Attachment]` --- приложения к объявлению
 
-
 ## Attachment {#attachment}
 
 Приложенные файлы к урокам и объявлениям.
