@@ -7,7 +7,7 @@ with open('README.md') as readme:
 
 setup(
     name='netschoolapi',
-    version='5.0.2',
+    version='5.0.3',
     description='Асинхронный API-клиент для «Сетевого города»',
     long_description=long_description,
     long_description_content_type='text/markdown',

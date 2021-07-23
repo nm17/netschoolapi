@@ -76,7 +76,7 @@ class School(NetSchoolAPISchema):
     name = fields.String(data_key='fullSchoolName')
     about = fields.String(data_key='about')
 
-    address = fields.String(data_key='juridicalAddress')
+    address = fields.String(data_key='address')
     email = fields.String(data_key='email')
     site = fields.String(data_key='web')
     phone = fields.String(data_key='phones')
@@ -91,4 +91,5 @@ class School(NetSchoolAPISchema):
         school.update(school.pop('commonInfo'))
         school.update(school.pop('contactInfo'))
         school.update(school.pop('managementInfo'))
+        school['address'] = school['juridicalAddress'] or school['postAddress']
         return school

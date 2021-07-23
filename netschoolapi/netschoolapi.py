@@ -19,12 +19,13 @@ class NetSchoolAPI:
         url = url.rstrip('/')
         self._client = AsyncClient(
             base_url='{0}/webapi'.format(url),
-            headers={'user-agent': 'NetSchoolAPI/5.0.2', 'referer': url},
+            headers={'user-agent': 'NetSchoolAPI/5.0.3', 'referer': url},
             event_hooks={'response': [_die_on_bad_status]},
         )
 
         self._student_id = -1
         self._year_id = -1
+        self._school_id = -1
 
         self._assignment_types = dict[int, str]()
 
@@ -141,6 +142,11 @@ class NetSchoolAPI:
         attachments = schemas.Attachment().load(attachments_json, many=True)
         return [data.Attachment(**attachment) for attachment in attachments]
 
+    async def school(self):
+        response = await self._client.get('schools/{0}/card'.format(self._school_id))
+        school = schemas.School().load(response.json())
+        return data.School(**school)
+
     async def logout(self):
         await self._client.post('auth/logout')
         await self._client.aclose()
@@ -151,6 +157,7 @@ class NetSchoolAPI:
         schools_reference = response.json()
         for school_ in schools_reference:
             if school_['name'] == school:
+                self._school_id = school_['id']
                 return {
                     'cid': school_['countryId'],
                     'sid': school_['stateId'],
