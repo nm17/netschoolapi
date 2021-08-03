@@ -71,6 +71,14 @@ class School:
     UVR: str
 
 
+@dataclass
+class Message:
+    sender: str
+    to: str
+    subject: str
+    text: str
+
+
 def _make_nested_dataclass(cls, field_values: dict[str, Any]):
     field_types = get_type_hints(cls)
 
