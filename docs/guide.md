@@ -30,7 +30,7 @@
 
 ## Объявления {#announcements}
 
-`.announcements()` --- список объявлений. Возвращает список [`Assignment`](reference.md#assignment) или пустой список.
+`.announcements()` --- список объявлений. Возвращает список [`Announcement`](reference.md#announcement) или пустой список.
 
 ## Информация о школе {#school}
 
