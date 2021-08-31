@@ -1,11 +1,10 @@
 from datetime import date, timedelta
 from hashlib import md5
-from typing import Optional
+from typing import Optional, Dict, List
 
 from httpx import AsyncClient, Response
 
 from netschoolapi import data, errors, schemas
-
 
 __all__ = ['NetSchoolAPI']
 
@@ -18,7 +17,7 @@ class NetSchoolAPI:
     def __init__(self, url: str):
         url = url.rstrip('/')
         self._client = AsyncClient(
-            base_url='{0}/webapi'.format(url),
+            base_url=f'{url}/webapi',
             headers={'user-agent': 'NetSchoolAPI/5.0.3', 'referer': url},
             event_hooks={'response': [_die_on_bad_status]},
         )
@@ -27,7 +26,7 @@ class NetSchoolAPI:
         self._year_id = -1
         self._school_id = -1
 
-        self._assignment_types = dict[int, str]()
+        self._assignment_types: Dict[int, str] = {}
 
     async def __aenter__(self) -> 'NetSchoolAPI':
         return self
@@ -43,7 +42,9 @@ class NetSchoolAPI:
         login_meta = response.json()
         salt = login_meta.pop('salt')
 
-        encoded_password = md5(password.encode('windows-1251')).hexdigest().encode()
+        encoded_password = md5(
+            password.encode('windows-1251')
+        ).hexdigest().encode()
         pw2 = md5(salt.encode() + encoded_password).hexdigest()
         pw = pw2[: len(password)]
 
@@ -74,10 +75,13 @@ class NetSchoolAPI:
         year_reference = response.json()
         self._year_id = year_reference['id']
 
-        response = await self._client.get('grade/assignment/types', params={'all': False})
+        response = await self._client.get(
+            'grade/assignment/types', params={'all': False}
+        )
         assignment_reference = response.json()
         self._assignment_types = {
-            assignment['id']: assignment['name'] for assignment in assignment_reference
+            assignment['id']: assignment['name']
+            for assignment in assignment_reference
         }
 
     async def diary(
@@ -108,7 +112,7 @@ class NetSchoolAPI:
         self,
         start: Optional[date] = None,
         end: Optional[date] = None,
-    ) -> list[data.Assignment]:
+    ) -> List[data.Assignment]:
         if not start:
             monday = date.today() - timedelta(days=date.today().weekday())
             start = monday
@@ -127,12 +131,19 @@ class NetSchoolAPI:
         assignments = schemas.Assignment().load(response.json(), many=True)
         return [data.Assignment(**assignment) for assignment in assignments]
 
-    async def announcements(self, take: Optional[int] = -1) -> list[data.Announcement]:
-        response = await self._client.get('announcements', params={'take': take})
+    async def announcements(
+            self, take: Optional[int] = -1) -> List[data.Announcement]:
+        response = await self._client.get(
+            'announcements', params={'take': take}
+        )
         announcements = schemas.Announcement().load(response.json(), many=True)
-        return [data.Announcement(**announcement) for announcement in announcements]
+        return [
+            data.Announcement(**announcement)
+            for announcement in announcements
+        ]
 
-    async def attachments(self, assignment: data.Assignment) -> list[data.Attachment]:
+    async def attachments(
+            self, assignment: data.Assignment) -> List[data.Attachment]:
         response = await self._client.post(
             'student/diary/get-attachments',
             params={'studentId': self._student_id},
@@ -143,7 +154,9 @@ class NetSchoolAPI:
         return [data.Attachment(**attachment) for attachment in attachments]
 
     async def school(self):
-        response = await self._client.get('schools/{0}/card'.format(self._school_id))
+        response = await self._client.get(
+            'schools/{0}/card'.format(self._school_id)
+        )
         school = schemas.School().load(response.json())
         return data.School(**school)
 
@@ -151,8 +164,10 @@ class NetSchoolAPI:
         await self._client.post('auth/logout')
         await self._client.aclose()
 
-    async def _address(self, school: str) -> dict[str, int]:
-        response = await self._client.get('addresses/schools', params={'funcType': 2})
+    async def _address(self, school: str) -> Dict[str, int]:
+        response = await self._client.get(
+            'addresses/schools', params={'funcType': 2}
+        )
 
         schools_reference = response.json()
         for school_ in schools_reference:

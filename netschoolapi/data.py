@@ -1,10 +1,11 @@
+import typing
 from dataclasses import dataclass, fields
 from datetime import date, time
-from types import GenericAlias
-from typing import Any, Optional, get_args, get_type_hints
-
+from typing import Any, Optional, get_args, get_type_hints, Dict, List
 
 __all__ = ['Assignment', 'School', 'diary', 'announcement']
+
+_TypingGenericAlias = type(typing.List)
 
 
 @dataclass
@@ -19,7 +20,7 @@ class Announcement:
     name: str
     content: str
     post_date: date
-    attachments: list[Attachment]
+    attachments: List[Attachment]
 
 
 @dataclass
@@ -41,20 +42,20 @@ class Lesson:
     number: int
     room: str
     subject: str
-    assignments: list[Assignment]
+    assignments: List[Assignment]
 
 
 @dataclass
 class Day:
     day: date
-    lessons: list[Lesson]
+    lessons: List[Lesson]
 
 
 @dataclass
 class Diary:
     start: date
     end: date
-    schedule: list[Day]
+    schedule: List[Day]
 
 
 @dataclass
@@ -71,29 +72,37 @@ class School:
     UVR: str
 
 
-def _make_nested_dataclass(cls, field_values: dict[str, Any]):
+def _make_nested_dataclass(cls, field_values: Dict[str, Any]):
+    """ In order to understand it, check the comments in function's body """
     field_types = get_type_hints(cls)
 
     init_kwargs = {}
-    for field in fields(cls):
-        field_type = field_types[field.name]
-        field_value = field_values[field.name]
+    for field in fields(cls):  # field is of type dataclasses.Field
+        field_type = field_types[field.name]  # dataclass field's type
+        field_value = field_values[field.name]  # Field's value from json
 
-        if isinstance(field_type, GenericAlias):
-            datacls_name = get_args(field_type)[0]
+        if (
+            type(field_type) == _TypingGenericAlias
+            and field_type.__origin__ == list
+        ):  # field: List[A]
+            nested_dataclass = get_args(field_type)[0]  # List[A] -> A
             init_kwargs[field.name] = [
-                _make_nested_dataclass(datacls_name, datacls_init_args)
-                for datacls_init_args in field_value
+                _make_nested_dataclass(
+                    cls=nested_dataclass,
+                    field_values=dataclass_init_args
+                )
+                for dataclass_init_args in field_value
+                # field_value now contains List[Dict[field_name, value]]
             ]
-        else:
+        else:  # field: int (that's an example)
             init_kwargs[field.name] = field_value
 
     return cls(**init_kwargs)
 
 
-def diary(init_kwargs: dict[str, Any]) -> Diary:
+def diary(init_kwargs: Dict[str, Any]) -> Diary:
     return _make_nested_dataclass(Diary, init_kwargs)
 
 
-def announcement(init_kwargs: dict[str, Any]) -> Announcement:
+def announcement(init_kwargs: Dict[str, Any]) -> Announcement:
     return _make_nested_dataclass(Announcement, init_kwargs)
