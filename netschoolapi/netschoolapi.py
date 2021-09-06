@@ -2,6 +2,7 @@ from datetime import date, timedelta
 from hashlib import md5
 from typing import Optional, Dict, List
 
+import httpx
 from httpx import AsyncClient, Response
 
 from netschoolapi import data, errors, schemas
@@ -27,6 +28,7 @@ class NetSchoolAPI:
         self._school_id = -1
 
         self._assignment_types: Dict[int, str] = {}
+        self._login_data = ()
 
     async def __aenter__(self) -> 'NetSchoolAPI':
         return self
@@ -83,6 +85,23 @@ class NetSchoolAPI:
             assignment['id']: assignment['name']
             for assignment in assignment_reference
         }
+        self._login_data = (user_name, password, school)
+
+    async def _request_with_optional_relogin(
+            self, path: str, method="GET", params: dict = None,
+            json: dict = None):
+        while True:
+            try:
+                response = await self._client.request(
+                    method, path, params=params, json=json
+                )
+            except httpx.HTTPStatusError:
+                if self._login_data:
+                    await self.login(*self._login_data)
+                else:
+                    raise
+            else:
+                return response
 
     async def diary(
         self,
@@ -95,7 +114,7 @@ class NetSchoolAPI:
         if not end:
             end = start + timedelta(days=5)
 
-        response = await self._client.get(
+        response = await self._request_with_optional_relogin(
             'student/diary',
             params={
                 'studentId': self._student_id,
@@ -119,7 +138,7 @@ class NetSchoolAPI:
         if not end:
             end = start + timedelta(days=5)
 
-        response = await self._client.get(
+        response = await self._request_with_optional_relogin(
             'student/diary/pastMandatory',
             params={
                 'studentId': self._student_id,
@@ -133,7 +152,7 @@ class NetSchoolAPI:
 
     async def announcements(
             self, take: Optional[int] = -1) -> List[data.Announcement]:
-        response = await self._client.get(
+        response = await self._request_with_optional_relogin(
             'announcements', params={'take': take}
         )
         announcements = schemas.Announcement().load(response.json(), many=True)
@@ -144,8 +163,9 @@ class NetSchoolAPI:
 
     async def attachments(
             self, assignment: data.Assignment) -> List[data.Attachment]:
-        response = await self._client.post(
-            'student/diary/get-attachments',
+        response = await self._request_with_optional_relogin(
+            method="POST",
+            path='student/diary/get-attachments',
             params={'studentId': self._student_id},
             json={'assignId': [assignment.id]},
         )
@@ -154,7 +174,7 @@ class NetSchoolAPI:
         return [data.Attachment(**attachment) for attachment in attachments]
 
     async def school(self):
-        response = await self._client.get(
+        response = await self._request_with_optional_relogin(
             'schools/{0}/card'.format(self._school_id)
         )
         school = schemas.School().load(response.json())
