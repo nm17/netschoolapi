@@ -50,17 +50,23 @@ class NetSchoolAPI:
         pw2 = md5(salt.encode() + encoded_password).hexdigest()
         pw = pw2[: len(password)]
 
-        response = await self._client.post(
-            'login',
-            data={
-                'loginType': 1,
-                **(await self._address(school)),
-                'un': user_name,
-                'pw': pw,
-                'pw2': pw2,
-                **login_meta,
-            },
-        )
+        try:
+            response = await self._client.post(
+                'login',
+                data={
+                    'loginType': 1,
+                    **(await self._address(school)),
+                    'un': user_name,
+                    'pw': pw,
+                    'pw2': pw2,
+                    **login_meta,
+                },
+            )
+        except httpx.HTTPStatusError as http_status_error:
+            if http_status_error.response.status_code == httpx.codes.CONFLICT:
+                raise errors.AuthError("Incorrect username or password!")
+            else:
+                raise http_status_error
         auth_result = response.json()
 
         if 'at' not in auth_result:
@@ -90,18 +96,29 @@ class NetSchoolAPI:
     async def _request_with_optional_relogin(
             self, path: str, method="GET", params: dict = None,
             json: dict = None):
-        while True:
-            try:
-                response = await self._client.request(
-                    method, path, params=params, json=json
-                )
-            except httpx.HTTPStatusError:
+        try:
+            response = await self._client.request(
+                method, path, params=params, json=json
+            )
+        except httpx.HTTPStatusError as http_status_error:
+            if (
+                http_status_error.response.status_code
+                == httpx.codes.UNAUTHORIZED
+            ):
                 if self._login_data:
                     await self.login(*self._login_data)
+                    return await self._client.send(
+                        http_status_error.response.request
+                    )
                 else:
-                    raise
+                    raise errors.AuthError(
+                        ".login() before making requests that need "
+                        "authorization"
+                    )
             else:
-                return response
+                raise http_status_error
+        else:
+            return response
 
     async def diary(
         self,
