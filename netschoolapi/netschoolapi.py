@@ -1,6 +1,7 @@
 from datetime import date, timedelta
 from hashlib import md5
-from typing import Optional, Dict, List
+from io import BytesIO
+from typing import Optional, Dict, List, Union
 
 import httpx
 from httpx import AsyncClient, Response
@@ -119,6 +120,24 @@ class NetSchoolAPI:
                 raise http_status_error
         else:
             return response
+
+    async def download_attachment(
+            self, attachment: data.Attachment,
+            path_or_file: Union[BytesIO, str] = None):
+        """
+        If `path_to_file` is a string, it should contain absolute path to file
+        """
+        if path_or_file is None:
+            file = open(attachment.name, "wb")
+        elif isinstance(path_or_file, str):
+            file = open(path_or_file, "wb")
+        else:
+            file = path_or_file
+        file.write((
+            await self._request_with_optional_relogin(
+                f"attachments/{attachment.id}"
+            )
+        ).content)
 
     async def diary(
         self,
