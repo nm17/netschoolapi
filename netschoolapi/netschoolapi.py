@@ -193,7 +193,7 @@ class NetSchoolAPI:
         )
         announcements = schemas.Announcement().load(response.json(), many=True)
         return [
-            data.Announcement(**announcement)
+            data.announcement(announcement)
             for announcement in announcements
         ]
 

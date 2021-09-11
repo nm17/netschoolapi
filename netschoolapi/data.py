@@ -1,18 +1,20 @@
-import typing
 from dataclasses import dataclass, fields
 from datetime import date, time
-from typing import Any, Optional, get_args, get_type_hints, Dict, List
+# noinspection PyUnresolvedReferences
+# because `_GenericAlias` is actually in `typing`
+from typing import (
+    Any, Optional, get_args, get_type_hints, Dict, List,
+    _GenericAlias as _TypingGenericAlias
+)
 
 __all__ = ['Assignment', 'School', 'diary', 'announcement']
-
-_TypingGenericAlias = type(typing.List)
 
 
 @dataclass
 class Attachment:
     id: int
     name: str
-    description: str
+    description: Optional[str]
 
 
 @dataclass
