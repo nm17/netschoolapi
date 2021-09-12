@@ -108,8 +108,8 @@ class NetSchoolAPI:
             ):
                 if self._login_data:
                     await self.login(*self._login_data)
-                    return await self._client.send(
-                        http_status_error.response.request
+                    return await self._client.request(
+                        method, path, params=params, json=json
                     )
                 else:
                     raise errors.AuthError(
