@@ -1,10 +1,9 @@
 from dataclasses import dataclass, fields
 from datetime import date, time
-# noinspection PyUnresolvedReferences
+# noinspection PyUnresolvedReferences,PyProtectedMember
 # because `_GenericAlias` is actually in `typing`
 from typing import (
-    Any, Optional, get_args, get_type_hints, Dict, List,
-    _GenericAlias as _TypingGenericAlias
+    Any, Optional, get_args, get_type_hints, Dict, List, _GenericAlias
 )
 
 __all__ = ['Assignment', 'School', 'diary', 'announcement']
@@ -84,7 +83,7 @@ def _make_nested_dataclass(cls, field_values: Dict[str, Any]):
         field_value = field_values[field.name]  # Field's value from json
 
         if (
-            type(field_type) == _TypingGenericAlias
+            type(field_type) == _GenericAlias
             and field_type.__origin__ == list
         ):  # field: List[A]
             nested_dataclass = get_args(field_type)[0]  # List[A] -> A
