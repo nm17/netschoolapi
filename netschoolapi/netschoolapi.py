@@ -139,6 +139,14 @@ class NetSchoolAPI:
             )
         ).content)
 
+    async def download_attachment_as_bytes(
+            self, attachment: data.Attachment) -> BytesIO:
+        attachment_contents_buffer = BytesIO()
+        await self.download_attachment(
+            attachment, path_or_file=attachment_contents_buffer
+        )
+        return attachment_contents_buffer
+
     async def diary(
         self,
         start: Optional[date] = None,

@@ -26,7 +26,7 @@
 
 * `assignment: Assignment` --- урок, у которого нужно получить прикреплённые файлы
 
-Возвращает список объектов [`Attachment`](reference.md#attachment) или пустой список, если к уроку не прикреплено файлов. Скачать вложение из файла можно с помощью `netschoolapi_client.download_attachment()`.
+Возвращает список объектов [`Attachment`](reference.md#attachment) или пустой список, если к уроку не прикреплено файлов. Скачать вложение из файла можно с помощью `netschoolapi_client.download_attachment()` или `netschoolapi_client.download_attachment_as_bytes()`.
 
 ## Объявления {#announcements}
 
