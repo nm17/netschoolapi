@@ -1,7 +1,6 @@
-from typing import Any
+from typing import Any, Dict
 
 from marshmallow import EXCLUDE, Schema, fields, pre_load
-
 
 __all__ = ['Attachment', 'Announcement', 'Assignment', 'Diary', 'School']
 
@@ -21,14 +20,16 @@ class Attachment(NetSchoolAPISchema):
 class Announcement(NetSchoolAPISchema):
     name = fields.String()
     content = fields.String(data_key='description')
-    post_date = fields.Date(data_key='postDate')
+    post_date = fields.DateTime(data_key='postDate')
     attachments = fields.List(fields.Nested(Attachment), missing=[])
 
 
 class Assignment(NetSchoolAPISchema):
     id = fields.Integer()
     type = fields.Function(
-        deserialize=lambda type_id, context: context['assignment_types'][type_id],
+        deserialize=(
+            lambda type_id, context: context['assignment_types'][type_id]
+        ),
         data_key='typeId',
     )
     content = fields.String(data_key='assignmentName')
@@ -42,7 +43,7 @@ class Assignment(NetSchoolAPISchema):
     deadline = fields.Date(data_key='dueDate')
 
     @pre_load
-    def unwrap_marks(self, assignment: dict[str, Any], **_) -> dict[str, str]:
+    def unwrap_marks(self, assignment: Dict[str, Any], **_) -> Dict[str, str]:
         mark = assignment.pop('mark', None)
         if mark:
             assignment.update(mark)
@@ -87,7 +88,8 @@ class School(NetSchoolAPISchema):
     UVR = fields.String(data_key='principalUVR')
 
     @pre_load
-    def unwrap_nested_dicts(self, school: dict[str, Any], **_) -> dict[str, str]:
+    def unwrap_nested_dicts(
+            self, school: Dict[str, Any], **_) -> Dict[str, str]:
         school.update(school.pop('commonInfo'))
         school.update(school.pop('contactInfo'))
         school.update(school.pop('managementInfo'))
