@@ -1,3 +1,4 @@
+import datetime
 from dataclasses import dataclass, fields
 from datetime import date, time
 # noinspection PyUnresolvedReferences,PyProtectedMember
@@ -20,7 +21,7 @@ class Attachment:
 class Announcement:
     name: str
     content: str
-    post_date: date
+    post_date: datetime.datetime
     attachments: List[Attachment]
 
 
