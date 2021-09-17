@@ -42,7 +42,7 @@ class Lesson:
     start: time
     end: time
     number: int
-    room: str
+    room: Optional[str]
     subject: str
     assignments: List[Assignment]
 

@@ -56,7 +56,7 @@ class Lesson(NetSchoolAPISchema):
     day = fields.Date()
     start = fields.Time(data_key='startTime')
     end = fields.Time(data_key='endTime')
-    room = fields.String(missing='')
+    room = fields.String(allow_none=True, missing='')
     number = fields.Integer()
     subject = fields.String(data_key='subjectName')
     assignments = fields.List(fields.Nested(Assignment), missing=[])
