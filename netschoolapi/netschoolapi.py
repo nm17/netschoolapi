@@ -37,7 +37,7 @@ class NetSchoolAPI:
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         await self.logout()
 
-    async def login(self, user_name: str, password: str, school: [str, int]):
+    async def login(self, user_name: str, password: str, school: Union[str, int]):
         response_with_cookies = await self._client.get('logindata')
         self._client.cookies.extract_cookies(response_with_cookies)
 
@@ -228,7 +228,7 @@ class NetSchoolAPI:
         await self._client.post('auth/logout')
         await self._client.aclose()
 
-    async def _address(self, school: [str, int]) -> Dict[str, int]:
+    async def _address(self, school: Union[str, int]) -> Dict[str, int]:
         response = await self._client.get(
             'addresses/schools', params={'funcType': 2}
         )
