@@ -37,7 +37,7 @@ class NetSchoolAPI:
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         await self.logout()
 
-    async def login(self, user_name: str, password: str, school: str):
+    async def login(self, user_name: str, password: str, school: [str, int]):
         response_with_cookies = await self._client.get('logindata')
         self._client.cookies.extract_cookies(response_with_cookies)
 
@@ -228,14 +228,14 @@ class NetSchoolAPI:
         await self._client.post('auth/logout')
         await self._client.aclose()
 
-    async def _address(self, school: str) -> Dict[str, int]:
+    async def _address(self, school: [str, int]) -> Dict[str, int]:
         response = await self._client.get(
             'addresses/schools', params={'funcType': 2}
         )
 
         schools_reference = response.json()
         for school_ in schools_reference:
-            if school_['name'] == school:
+            if school_['name'] == school or school_['id'] == school:
                 self._school_id = school_['id']
                 return {
                     'cid': school_['countryId'],
