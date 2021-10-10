@@ -97,29 +97,29 @@ class NetSchoolAPI:
     async def _request_with_optional_relogin(
             self, path: str, method="GET", params: dict = None,
             json: dict = None):
-        try:
-            response = await self._client.request(
-                method, path, params=params, json=json
-            )
-        except httpx.HTTPStatusError as http_status_error:
-            if (
-                http_status_error.response.status_code
-                == httpx.codes.UNAUTHORIZED
-            ):
-                if self._login_data:
-                    await self.login(*self._login_data)
-                    return await self._client.request(
-                        method, path, params=params, json=json
-                    )
+        while True:
+            try:
+                response = await self._client.request(
+                    method, path, params=params, json=json
+                )
+            except httpx.HTTPStatusError as http_status_error:
+                if (
+                    http_status_error.response.status_code
+                    == httpx.codes.UNAUTHORIZED
+                ):
+                    if self._login_data:
+                        await self.login(*self._login_data)
+                    else:
+                        raise errors.AuthError(
+                            ".login() before making requests that need "
+                            "authorization"
+                        )
                 else:
-                    raise errors.AuthError(
-                        ".login() before making requests that need "
-                        "authorization"
-                    )
+                    raise http_status_error
+            except httpx.ReadTimeout:
+                pass
             else:
-                raise http_status_error
-        else:
-            return response
+                return response
 
     async def download_attachment(
             self, attachment: data.Attachment,
