@@ -127,6 +127,7 @@ class NetSchoolAPI:
                 pass
             else:
                 return response
+        raise errors.NoResponseFromServer
 
     async def download_attachment(
             self, attachment: data.Attachment,
