@@ -11,12 +11,17 @@ from netschoolapi import data, errors, schemas
 __all__ = ['NetSchoolAPI']
 
 
+DEFAULT_REQUEST_REPETITIONS_AMOUNT = 5
+
+
 async def _die_on_bad_status(response: Response):
     response.raise_for_status()
 
 
 class NetSchoolAPI:
-    def __init__(self, url: str):
+    def __init__(
+            self, url: str,
+            request_repetitions_amount=DEFAULT_REQUEST_REPETITIONS_AMOUNT):
         url = url.rstrip('/')
         self._client = AsyncClient(
             base_url=f'{url}/webapi',
@@ -30,6 +35,8 @@ class NetSchoolAPI:
 
         self._assignment_types: Dict[int, str] = {}
         self._login_data = ()
+
+        self._request_repetitions_amount = request_repetitions_amount
 
     async def __aenter__(self) -> 'NetSchoolAPI':
         return self
@@ -97,7 +104,7 @@ class NetSchoolAPI:
     async def _request_with_optional_relogin(
             self, path: str, method="GET", params: dict = None,
             json: dict = None):
-        while True:
+        for _ in range(self._request_repetitions_amount):
             try:
                 response = await self._client.request(
                     method, path, params=params, json=json
