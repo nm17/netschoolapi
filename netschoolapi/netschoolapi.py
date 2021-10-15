@@ -238,10 +238,6 @@ class NetSchoolAPI:
             if school_['name'] == school or school_['id'] == school:
                 self._school_id = school_['id']
                 return {
-                    'cid': school_['countryId'],
-                    'sid': school_['stateId'],
-                    'pid': school_['municipalityDistrictId'],
-                    'cn': school_['cityId'],
                     'sft': 2,
                     'scid': school_['id'],
                 }
