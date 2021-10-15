@@ -230,10 +230,10 @@ class NetSchoolAPI:
 
     async def _address(self, school: Union[str, int]) -> Dict[str, int]:
         response = await self._client.get(
-            'addresses/schools', params={'funcType': 2}
+            'prepareloginform'
         )
 
-        schools_reference = response.json()
+        schools_reference = response.json()['schools']
         for school_ in schools_reference:
             if school_['name'] == school or school_['id'] == school:
                 self._school_id = school_['id']
