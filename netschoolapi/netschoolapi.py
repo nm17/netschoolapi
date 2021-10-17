@@ -236,21 +236,22 @@ class NetSchoolAPI:
         await self._client.aclose()
 
     async def _address(self, school: Union[str, int]) -> Dict[str, int]:
-        response = await self._client.get(
-            'prepareloginform'
-        )
-
-        schools_reference = response.json()['schools']
+        try:
+            response = await self._client.get(
+                'addresses/schools', params={'funcType': 2}
+            )
+            schools_reference = response.json()
+        except httpx.HTTPStatusError as http_status_error:
+            if http_status_error.response.status_code == 404:
+                response = await self._client.get(
+                    'prepareloginform'
+                )
+                schools_reference = response.json()['schools']
+                
         for school_ in schools_reference:
             if school_['name'] == school or school_['id'] == school:
                 self._school_id = school_['id']
                 return {
-                    '''
-                    'cid': school_['countryId'],
-                    'sid': school_['stateId'],
-                    'pid': school_['municipalityDistrictId'],
-                    'cn': school_['cityId'],
-                    '''
                     'sft': 2,
                     'scid': school_['id'],
                 }
