@@ -74,6 +74,12 @@ class School:
     UVR: str
 
 
+@dataclass
+class Session:
+    name: str
+    role: str
+    id: int
+
 def _make_nested_dataclass(cls, field_values: Dict[str, Any]):
     """ In order to understand it, check the comments in function's body """
     field_types = get_type_hints(cls)

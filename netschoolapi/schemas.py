@@ -72,7 +72,6 @@ class Diary(NetSchoolAPISchema):
     end = fields.Date(data_key='weekEnd')
     schedule = fields.List(fields.Nested(Day), data_key='weekDays')
 
-
 class School(NetSchoolAPISchema):
     name = fields.String(data_key='fullSchoolName')
     about = fields.String(data_key='about')
@@ -95,3 +94,8 @@ class School(NetSchoolAPISchema):
         school.update(school.pop('managementInfo'))
         school['address'] = school['juridicalAddress'] or school['postAddress']
         return school
+
+class Session(NetSchoolAPISchema):
+    name = fields.String(data_key='nickName')
+    role = fields.String(data_key='roles')
+    id = fields.Integer(data_key='userId')
