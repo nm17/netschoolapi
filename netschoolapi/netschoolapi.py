@@ -102,9 +102,11 @@ class NetSchoolAPI:
         self._login_data = (user_name, password, school)
 
     async def _request_with_optional_relogin(
-            self, path: str, method="GET", params: dict = None,
-            json: dict = None):
-        for _ in range(self._request_repetitions_amount):
+            self, path: str, request_repetitions_amount: Optional[int],
+            method="GET", params: dict = None, json: dict = None):
+        for _ in range(
+            request_repetitions_amount or self._request_repetitions_amount
+        ):
             try:
                 response = await self._client.request(
                     method, path, params=params, json=json
@@ -131,7 +133,8 @@ class NetSchoolAPI:
 
     async def download_attachment(
             self, attachment: data.Attachment,
-            path_or_file: Union[BytesIO, str] = None):
+            path_or_file: Union[BytesIO, str] = None,
+            request_repetitions_amount: int = None):
         """
         If `path_to_file` is a string, it should contain absolute path to file
         """
@@ -143,7 +146,8 @@ class NetSchoolAPI:
             file = path_or_file
         file.write((
             await self._request_with_optional_relogin(
-                f"attachments/{attachment.id}"
+                f"attachments/{attachment.id}",
+                request_repetitions_amount=request_repetitions_amount
             )
         ).content)
 
@@ -159,6 +163,7 @@ class NetSchoolAPI:
         self,
         start: Optional[date] = None,
         end: Optional[date] = None,
+        request_repetitions_amount: int = None,
     ) -> data.Diary:
         if not start:
             monday = date.today() - timedelta(days=date.today().weekday())
@@ -174,6 +179,7 @@ class NetSchoolAPI:
                 'weekStart': start.isoformat(),
                 'weekEnd': end.isoformat(),
             },
+            request_repetitions_amount=request_repetitions_amount
         )
         diary_schema = schemas.Diary()
         diary_schema.context['assignment_types'] = self._assignment_types
@@ -183,6 +189,7 @@ class NetSchoolAPI:
         self,
         start: Optional[date] = None,
         end: Optional[date] = None,
+        request_repetitions_amount: int = None,
     ) -> List[data.Assignment]:
         if not start:
             monday = date.today() - timedelta(days=date.today().weekday())
@@ -198,14 +205,17 @@ class NetSchoolAPI:
                 'weekStart': start.isoformat(),
                 'weekEnd': end.isoformat(),
             },
+            request_repetitions_amount=request_repetitions_amount
         )
         assignments = schemas.Assignment().load(response.json(), many=True)
         return [data.Assignment(**assignment) for assignment in assignments]
 
     async def announcements(
-            self, take: Optional[int] = -1) -> List[data.Announcement]:
+            self, take: Optional[int] = -1,
+            request_repetitions_amount: int = None) -> List[data.Announcement]:
         response = await self._request_with_optional_relogin(
-            'announcements', params={'take': take}
+            'announcements', params={'take': take},
+            request_repetitions_amount=request_repetitions_amount
         )
         announcements = schemas.Announcement().load(response.json(), many=True)
         return [
@@ -214,20 +224,23 @@ class NetSchoolAPI:
         ]
 
     async def attachments(
-            self, assignment: data.Assignment) -> List[data.Attachment]:
+            self, assignment: data.Assignment,
+            request_repetitions_amount: int = None) -> List[data.Attachment]:
         response = await self._request_with_optional_relogin(
             method="POST",
             path='student/diary/get-attachments',
             params={'studentId': self._student_id},
             json={'assignId': [assignment.id]},
+            request_repetitions_amount=request_repetitions_amount
         )
         attachments_json = response.json()[0]['attachments']
         attachments = schemas.Attachment().load(attachments_json, many=True)
         return [data.Attachment(**attachment) for attachment in attachments]
 
-    async def school(self):
+    async def school(self, request_repetitions_amount: int = None):
         response = await self._request_with_optional_relogin(
-            'schools/{0}/card'.format(self._school_id)
+            'schools/{0}/card'.format(self._school_id),
+            request_repetitions_amount=request_repetitions_amount
         )
         school = schemas.School().load(response.json())
         return data.School(**school)
