@@ -71,6 +71,7 @@ class NetSchoolAPI:
                 },
             )
         except httpx.HTTPStatusError as http_status_error:
+            await self._client.aclose()
             if http_status_error.response.status_code == httpx.codes.CONFLICT:
                 raise errors.AuthError("Incorrect username or password!")
             else:
