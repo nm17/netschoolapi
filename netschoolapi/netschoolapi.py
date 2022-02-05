@@ -209,7 +209,9 @@ class NetSchoolAPI:
                 'weekEnd': end.isoformat(),
             },
         )
-        assignments = schemas.Assignment().load(response.json(), many=True)
+        assignments_schema = schemas.Assignment()
+        assignments_schema.context['assignment_types'] = self._assignment_types
+        assignments = assignments_schema.load(response.json(), many=True)
         return [data.Assignment(**assignment) for assignment in assignments]
 
     async def announcements(
