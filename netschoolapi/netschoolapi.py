@@ -267,7 +267,7 @@ class NetSchoolAPI:
 
         schools_reference = response.json()
         for school_ in schools_reference:
-            if school_['name'] == school:
+            if school_['name'] == school or school_['id'] == school:
                 self._school_id = school_['id']
                 return {
                     'cid': school_['countryId'],
