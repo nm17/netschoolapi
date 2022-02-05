@@ -267,3 +267,6 @@ pip-selfcheck.json
 *.code-workspace
 
 # End of https://www.toptal.com/developers/gitignore/api/linux,python,virtualenv,pycharm+all,vscode
+
+
+examples/config/config.json
