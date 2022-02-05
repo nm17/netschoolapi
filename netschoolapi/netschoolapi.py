@@ -238,6 +238,9 @@ class NetSchoolAPI:
             params={'studentId': self._student_id},
             json={'assignId': [assignment.id]},
         )
+        response = response.json()
+        if not response:
+            return []
         attachments_json = response.json()[0]['attachments']
         attachments = schemas.Attachment().load(attachments_json, many=True)
         return [data.Attachment(**attachment) for attachment in attachments]
