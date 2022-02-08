@@ -9,6 +9,8 @@ NetSchoolAPI — это асинхронный клиент для «Сетев
 
 [Документация](https://netschoolapi.readthedocs.io/ru/latest/)
 
+А ещё у нас есть примеры в `/examples`.
+
 ## Жалобы и предложения
 
 Обсуждение библиотеки ведётся в [чате](https://t.me/netschoolapi/) проекта в телеграме.

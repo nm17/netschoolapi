@@ -8,3 +8,7 @@ class AuthError(NetSchoolAPIError):
 
 class SchoolNotFoundError(NetSchoolAPIError):
     pass
+
+
+class NoResponseFromServer(NetSchoolAPIError):
+    pass

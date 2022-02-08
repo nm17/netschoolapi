@@ -26,7 +26,7 @@
 
 * `assignment: Assignment` --- урок, у которого нужно получить прикреплённые файлы
 
-Возвращает список объектов [`Attachment`](reference.md#attachment) или пустой список, если к уроку не прикреплено файлов. Скачать вложение из файла можно с помощью `netschoolapi_client.download_attachment()` или `netschoolapi_client.download_attachment_as_bytes()`.
+Возвращает список объектов [`Attachment`](reference.md#attachment) или пустой список, если к уроку не прикреплено файлов.
 
 ## Объявления {#announcements}
 
@@ -35,3 +35,7 @@
 ## Информация о школе {#school}
 
 `.school()` --- возвращает [информацию](reference.md#school) о школе.
+
+## Скачивание файлов из вложений {#downloading_files_from_attachments}
+
+Скачать файл из вложения можно с помощью `netschoolapi_client.download_attachment()` или `netschoolapi_client.download_attachment_as_bytes()`.
