@@ -259,6 +259,9 @@ class NetSchoolAPI:
             'auth/logout',
             method="POST",
         )
+
+    async def full_logout(self, requests_timeout: int = None):
+        await self.logout(requests_timeout)
         await self._wrapped_client.client.aclose()
 
     async def _address(
