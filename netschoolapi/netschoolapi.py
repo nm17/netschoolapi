@@ -121,6 +121,9 @@ class NetSchoolAPI:
             ):
                 if self._login_data:
                     await self.login(*self._login_data)
+                    return await self._request_with_optional_relogin(
+                        requests_timeout, path, method, params, json
+                    )
                 else:
                     raise errors.AuthError(
                         ".login() before making requests that need "
