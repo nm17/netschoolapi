@@ -34,10 +34,17 @@ class AsyncClientWrapper:
             self, requests_timeout: Optional[int], path: str,
             method="GET", params: dict = None, json: dict = None,
             data: dict = None):
+        if requests_timeout is None:
+            requests_timeout = self._default_requests_timeout
         try:
-            return await asyncio.wait_for(self._infinite_request(
-                path, method, params, json, data,
-            ), requests_timeout or self._default_requests_timeout)
+            if requests_timeout == 0:
+                return await self._infinite_request(
+                    path, method, params, json, data,
+                )
+            else:
+                return await asyncio.wait_for(self._infinite_request(
+                    path, method, params, json, data,
+                ), requests_timeout)
         except asyncio.TimeoutError:
             raise errors.NoResponseFromServer from None
 
