@@ -22,9 +22,9 @@ class AsyncClientWrapper:
             self, async_client: httpx.AsyncClient,
             default_requests_timeout: int = None):
         self.client = async_client
-        self._default_requests_timeout = (
-            default_requests_timeout or DEFAULT_REQUESTS_TIMEOUT
-        )
+        if default_requests_timeout is None:
+            default_requests_timeout = DEFAULT_REQUESTS_TIMEOUT
+        self._default_requests_timeout = default_requests_timeout
 
     def make_requester(self, requests_timeout: Optional[int]) -> Requester:
         # noinspection PyTypeChecker
