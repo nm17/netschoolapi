@@ -257,11 +257,20 @@ class NetSchoolAPI:
         return data.School(**school)
 
     async def logout(self, requests_timeout: int = None):
-        await self._wrapped_client.request(
-            requests_timeout,
-            'auth/logout',
-            method="POST",
-        )
+        try:
+            await self._wrapped_client.request(
+                requests_timeout,
+                'auth/logout',
+                method="POST",
+            )
+        except httpx.HTTPStatusError as http_status_error:
+            if http_status_error.response.status_code == httpx.codes.UNAUTHORIZED:
+                # Session is dead => we are logged out already
+                # OR
+                # We are logged out already
+                pass
+            else:
+                raise http_status_error
 
     async def full_logout(self, requests_timeout: int = None):
         await self.logout(requests_timeout)
