@@ -78,7 +78,13 @@ class NetSchoolAPI:
         except httpx.HTTPStatusError as http_status_error:
             await self._wrapped_client.client.aclose()
             if http_status_error.response.status_code == httpx.codes.CONFLICT:
-                raise errors.AuthError("Incorrect username or password!")
+                response_json = http_status_error.response.json()
+                if 'message' in response_json:
+                    raise errors.AuthError(
+                        http_status_error.response.json()['message']
+                    )
+                else:
+                    raise http_status_error
             else:
                 raise http_status_error
         auth_result = response.json()
@@ -264,7 +270,10 @@ class NetSchoolAPI:
                 method="POST",
             )
         except httpx.HTTPStatusError as http_status_error:
-            if http_status_error.response.status_code == httpx.codes.UNAUTHORIZED:
+            if (
+                http_status_error.response.status_code
+                == httpx.codes.UNAUTHORIZED
+            ):
                 # Session is dead => we are logged out already
                 # OR
                 # We are logged out already
