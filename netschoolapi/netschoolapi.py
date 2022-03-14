@@ -250,7 +250,7 @@ class NetSchoolAPI:
         response = response.json()
         if not response:
             return []
-        attachments_json = response.json()[0]['attachments']
+        attachments_json = response[0]['attachments']
         attachments = schemas.Attachment().load(attachments_json, many=True)
         return [data.Attachment(**attachment) for attachment in attachments]
 
