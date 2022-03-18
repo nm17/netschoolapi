@@ -76,7 +76,6 @@ class NetSchoolAPI:
                 method="POST"
             )
         except httpx.HTTPStatusError as http_status_error:
-            await self._wrapped_client.client.aclose()
             if http_status_error.response.status_code == httpx.codes.CONFLICT:
                 response_json = http_status_error.response.json()
                 if 'message' in response_json:
