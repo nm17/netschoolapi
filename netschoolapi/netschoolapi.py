@@ -285,7 +285,7 @@ class NetSchoolAPI:
 
     async def _address(
             self, school: str, requester: Requester) -> Dict[str, int]:
-        response = await requester('addresses/schools', params={'funcType': 2})
+        response = await requester('addresses/schools')
 
         schools_reference = response.json()
         for school_ in schools_reference:
