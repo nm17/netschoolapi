@@ -26,5 +26,5 @@ setup(
     ],
     license='MIT',
     install_requires=['httpx', 'marshmallow'],
-    python_requires='>=3.6',
+    python_requires='>=3.9',
 )
