@@ -47,11 +47,10 @@ class NetSchoolAPI:
             self, user_name: str, password: str, school: str,
             requests_timeout: int = None):
         requester = self._wrapped_client.make_requester(requests_timeout)
-        response_with_cookies = await requester('logindata')
-        self._wrapped_client.client.cookies.extract_cookies(
-            response_with_cookies
-        )
+        # Getting the `NSSESSIONID` cookie for `auth/getdata`
+        await requester('logindata')
 
+        # Getting the `NSSESSIONID` cookie for `login`
         response = await requester('auth/getdata', method="POST")
         login_meta = response.json()
         salt = login_meta.pop('salt')
