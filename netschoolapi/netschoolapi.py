@@ -147,16 +147,21 @@ class NetSchoolAPI:
         """
         if path_or_file is None:
             file = open(attachment.name, "wb")
+            file_is_new = True
         elif isinstance(path_or_file, str):
             file = open(path_or_file, "wb")
+            file_is_new = True
         else:
             file = path_or_file
+            file_is_new = False
         file.write((
             await self._request_with_optional_relogin(
                 requests_timeout,
                 f"attachments/{attachment.id}",
             )
         ).content)
+        if file_is_new:
+            file.close()
 
     async def download_attachment_as_bytes(
             self, attachment: data.Attachment, requests_timeout: int = None,
