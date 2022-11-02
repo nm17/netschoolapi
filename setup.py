@@ -7,7 +7,7 @@ with open('README.md') as readme:
 
 setup(
     name='netschoolapi',
-    version='7.1.7',
+    version='7.1.8',
     description='Асинхронный API-клиент для «Сетевого города»',
     long_description=long_description,
     long_description_content_type='text/markdown',
@@ -26,5 +26,5 @@ setup(
     ],
     license='MIT',
     install_requires=['httpx', 'marshmallow'],
-    python_requires='>=3.6',
+    python_requires='>=3.8',
 )
