@@ -76,13 +76,16 @@ class NetSchoolAPI:
             )
         except httpx.HTTPStatusError as http_status_error:
             if http_status_error.response.status_code == httpx.codes.CONFLICT:
-                response_json = http_status_error.response.json()
-                if 'message' in response_json:
-                    raise errors.AuthError(
-                        http_status_error.response.json()['message']
-                    )
+                try:
+                    response_json = http_status_error.response.json()
+                except httpx.ResponseNotRead:
+                    pass
                 else:
-                    raise http_status_error
+                    if 'message' in response_json:
+                        raise errors.AuthError(
+                            http_status_error.response.json()['message']
+                        )
+                raise errors.AuthError()
             else:
                 raise http_status_error
         auth_result = response.json()
