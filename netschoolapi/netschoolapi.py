@@ -142,16 +142,10 @@ class NetSchoolAPI:
             return response
 
     async def download_attachment(
-            self, attachment: schemas.Attachment,
-            path_or_file: Union[BytesIO, str] = None,
+            self, attachment_id: int,
+            path_or_file: Union[BytesIO, str],
             requests_timeout: int = None):
-        """
-        If `path_to_file` is a string, it should contain absolute path to file
-        """
-        if path_or_file is None:
-            file = open(attachment.name, "wb")
-            file_is_new = True
-        elif isinstance(path_or_file, str):
+        if isinstance(path_or_file, str):
             file = open(path_or_file, "wb")
             file_is_new = True
         else:
@@ -160,18 +154,18 @@ class NetSchoolAPI:
         file.write((
             await self._request_with_optional_relogin(
                 requests_timeout,
-                f"attachments/{attachment.id}",
+                f"attachments/{attachment_id}",
             )
         ).content)
         if file_is_new:
             file.close()
 
     async def download_attachment_as_bytes(
-            self, attachment: schemas.Attachment, requests_timeout: int = None,
+            self, attachment_id: int, requests_timeout: int = None,
     ) -> BytesIO:
         attachment_contents_buffer = BytesIO()
         await self.download_attachment(
-            attachment, path_or_file=attachment_contents_buffer,
+            attachment_id, path_or_file=attachment_contents_buffer,
             requests_timeout=requests_timeout
         )
         return attachment_contents_buffer
@@ -241,14 +235,14 @@ class NetSchoolAPI:
         return announcements
 
     async def attachments(
-            self, assignment: schemas.Assignment,
+            self, assignment_id: int,
             requests_timeout: int = None) -> List[schemas.Attachment]:
         response = await self._request_with_optional_relogin(
             requests_timeout,
             method="POST",
             path='student/diary/get-attachments',
             params={'studentId': self._student_id},
-            json={'assignId': [assignment.id]},
+            json={'assignId': [assignment_id]},
         )
         response = response.json()
         if not response:
