@@ -54,7 +54,7 @@ class AsyncClientWrapper:
         while True:
             try:
                 response = await self.client.request(
-                    method, path, params=params, json=json, data=data
+                        method, path, params=params, json=json, data=data  # type: ignore
                 )
             except httpx.ReadTimeout:
                 pass

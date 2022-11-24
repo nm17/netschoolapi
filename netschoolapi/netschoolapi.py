@@ -40,11 +40,12 @@ class NetSchoolAPI:
     async def __aenter__(self) -> 'NetSchoolAPI':
         return self
 
-    async def __aexit__(self, exc_type, exc_val, exc_tb):
+    async def __aexit__(self, _exc_type, _exc_val, _exc_tb):
         await self.logout()
 
     async def login(
-            self, user_name: str, password: str, school: str,
+            self, user_name: str, password: str,
+            school_name_or_id: Union[int, str],
             requests_timeout: int = None):
         requester = self._wrapped_client.make_requester(requests_timeout)
         # Getting the `NSSESSIONID` cookie for `auth/getdata`
@@ -66,7 +67,7 @@ class NetSchoolAPI:
                 'login',
                 data={
                     'loginType': 1,
-                    **(await self._address(school, requester)),
+                    **(await self._address(school_name_or_id, requester)),
                     'un': user_name,
                     'pw': pw,
                     'pw2': pw2,
@@ -112,7 +113,7 @@ class NetSchoolAPI:
             assignment['id']: assignment['name']
             for assignment in assignment_reference
         }
-        self._login_data = (user_name, password, school)
+        self._login_data = (user_name, password, school_name_or_id)
 
     async def _request_with_optional_relogin(
             self, requests_timeout: Optional[int], path: str,
@@ -194,7 +195,8 @@ class NetSchoolAPI:
         )
         diary_schema = schemas.Diary()
         diary_schema.context['assignment_types'] = self._assignment_types
-        return diary_schema.load(response.json())
+        diary = diary_schema.load(response.json())
+        return diary  # type: ignore
 
     async def overdue(
         self,
@@ -221,7 +223,7 @@ class NetSchoolAPI:
         assignments_schema = schemas.Assignment()
         assignments_schema.context['assignment_types'] = self._assignment_types
         assignments = assignments_schema.load(response.json(), many=True)
-        return assignments
+        return assignments  # type: ignore
 
     async def announcements(
             self, take: Optional[int] = -1,
@@ -232,7 +234,7 @@ class NetSchoolAPI:
             params={'take': take},
         )
         announcements = schemas.Announcement().load(response.json(), many=True)
-        return announcements
+        return announcements  # type: ignore
 
     async def attachments(
             self, assignment_id: int,
@@ -249,7 +251,7 @@ class NetSchoolAPI:
             return []
         attachments_json = response[0]['attachments']
         attachments = schemas.Attachment().load(attachments_json, many=True)
-        return attachments
+        return attachments  # type: ignore
 
     async def school(self, requests_timeout: int = None) -> schemas.School:
         response = await self._request_with_optional_relogin(
@@ -257,7 +259,7 @@ class NetSchoolAPI:
             'schools/{0}/card'.format(self._school_id),
         )
         school = schemas.School().load(response.json())
-        return school
+        return school  # type: ignore
 
     async def logout(self, requests_timeout: int = None):
         try:
@@ -282,20 +284,26 @@ class NetSchoolAPI:
         await self.logout(requests_timeout)
         await self._wrapped_client.client.aclose()
 
-    async def _address(
-            self, school: str, requester: Requester) -> Dict[str, int]:
-        response = await requester('addresses/schools')
+    async def schools(
+            self, requests_timeout: int = None) -> List[schemas.ShortSchool]:
+        resp = await self._wrapped_client.request(requests_timeout, "addresses/schools")
+        schools = schemas.ShortSchool().load(resp.json(), many=True)
+        return schools  # type: ignore
 
-        schools_reference = response.json()
-        for school_ in schools_reference:
-            if school_['name'] == school or school_['id'] == school:
-                self._school_id = school_['id']
+    async def _address(
+            self, school_name_or_id: Union[int, str],
+            requester: Requester) -> Dict[str, int]:
+        schools = (await requester("addresses/schools")).json()
+
+        for school in schools:
+            if school["name"] == school_name_or_id or school["id"] == school_name_or_id:
+                self._school_id = school['id']
                 return {
-                    'cid': school_['countryId'],
-                    'sid': school_['stateId'],
-                    'pid': school_['municipalityDistrictId'],
-                    'cn': school_['cityId'],
+                    'cid': school['countryId'],
+                    'sid': school['stateId'],
+                    'pid': school['municipalityDistrictId'],
+                    'cn': school['cityId'],
                     'sft': 2,
-                    'scid': school_['id'],
+                    'scid': school['id'],
                 }
-        raise errors.SchoolNotFoundError(school)
+        raise errors.SchoolNotFoundError(school_name_or_id)

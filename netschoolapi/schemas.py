@@ -80,16 +80,22 @@ class Diary(NetSchoolAPISchema):
     schedule = fields.List(fields.Nested(Day), data_key='weekDays')
 
 
+class ShortSchool(NetSchoolAPISchema):
+    name = fields.String()
+    id = fields.Integer()
+    address = fields.String(data_key="addressString")
+
+
 class School(NetSchoolAPISchema):
     name = fields.String(data_key='fullSchoolName')
-    about = fields.String(data_key='about')
+    about = fields.String()
 
-    address = fields.String(data_key='address')
-    email = fields.String(data_key='email')
+    address = fields.String()
+    email = fields.String()
     site = fields.String(data_key='web')
     phone = fields.String(data_key='phones')
 
-    director = fields.String(data_key='director')
+    director = fields.String()
     AHC = fields.String(data_key='principalAHC')
     IT = fields.String(data_key='principalIT')
     UVR = fields.String(data_key='principalUVR')
