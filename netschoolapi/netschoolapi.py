@@ -14,7 +14,8 @@ from netschoolapi.async_client_wrapper import AsyncClientWrapper, Requester
 
 
 async def _die_on_bad_status(response: Response):
-    response.raise_for_status()
+    if not response.is_redirect:
+        response.raise_for_status()
 
 
 class NetSchoolAPI:
@@ -36,6 +37,7 @@ class NetSchoolAPI:
 
         self._assignment_types: Dict[int, str] = {}
         self._login_data = ()
+        self._access_token = None
 
     async def __aenter__(self) -> 'NetSchoolAPI':
         return self
@@ -94,6 +96,7 @@ class NetSchoolAPI:
         if 'at' not in auth_result:
             raise errors.AuthError(auth_result['message'])
 
+        self._access_token = auth_result["at"]
         self._wrapped_client.client.headers['at'] = auth_result['at']
 
         response = await requester('student/diary/init')
@@ -117,10 +120,12 @@ class NetSchoolAPI:
 
     async def _request_with_optional_relogin(
             self, requests_timeout: Optional[int], path: str,
-            method="GET", params: dict = None, json: dict = None):
+            method="GET", params: dict = None, json: dict = None,
+            data: dict = None, allow_redirects=False):
         try:
             response = await self._wrapped_client.request(
                 requests_timeout, path, method, params, json,
+                data, allow_redirects
             )
         except httpx.HTTPStatusError as http_status_error:
             if (
@@ -130,7 +135,8 @@ class NetSchoolAPI:
                 if self._login_data:
                     await self.login(*self._login_data)
                     return await self._request_with_optional_relogin(
-                        requests_timeout, path, method, params, json
+                        requests_timeout, path, method, params, json,
+                        data, allow_redirects
                     )
                 else:
                     raise errors.AuthError(
@@ -143,33 +149,14 @@ class NetSchoolAPI:
             return response
 
     async def download_attachment(
-            self, attachment_id: int,
-            path_or_file: Union[BytesIO, str],
+            self, attachment_id: int, buffer: BytesIO,
             requests_timeout: int = None):
-        if isinstance(path_or_file, str):
-            file = open(path_or_file, "wb")
-            file_is_new = True
-        else:
-            file = path_or_file
-            file_is_new = False
-        file.write((
+        buffer.write((
             await self._request_with_optional_relogin(
                 requests_timeout,
                 f"attachments/{attachment_id}",
             )
         ).content)
-        if file_is_new:
-            file.close()
-
-    async def download_attachment_as_bytes(
-            self, attachment_id: int, requests_timeout: int = None,
-    ) -> BytesIO:
-        attachment_contents_buffer = BytesIO()
-        await self.download_attachment(
-            attachment_id, path_or_file=attachment_contents_buffer,
-            requests_timeout=requests_timeout
-        )
-        return attachment_contents_buffer
 
     async def diary(
         self,
@@ -307,3 +294,15 @@ class NetSchoolAPI:
                     'scid': school['id'],
                 }
         raise errors.SchoolNotFoundError(school_name_or_id)
+
+    async def download_profile_picture(
+            self, user_id: int, buffer: BytesIO,
+            requests_timeout: int = None):
+        buffer.write((
+            await self._request_with_optional_relogin(
+                requests_timeout,
+                "users/photo",
+                params={"at": self._access_token, "userId": user_id},
+                allow_redirects=True
+            )
+        ).content)

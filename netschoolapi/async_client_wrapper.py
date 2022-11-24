@@ -33,28 +33,30 @@ class AsyncClientWrapper:
     async def request(
             self, requests_timeout: Optional[int], path: str,
             method="GET", params: dict = None, json: dict = None,
-            data: dict = None):
+            data: dict = None, allow_redirects=False):
         if requests_timeout is None:
             requests_timeout = self._default_requests_timeout
         try:
             if requests_timeout == 0:
                 return await self._infinite_request(
-                    path, method, params, json, data,
+                    path, method, params, json, data, allow_redirects
                 )
             else:
                 return await asyncio.wait_for(self._infinite_request(
-                    path, method, params, json, data,
+                    path, method, params, json, data, allow_redirects
                 ), requests_timeout)
         except asyncio.TimeoutError:
             raise errors.NoResponseFromServer from None
 
     async def _infinite_request(
             self, path: str, method: str, params: Optional[dict],
-            json: Optional[dict], data: Optional[dict]):
+            json: Optional[dict], data: Optional[dict],
+            allow_redirects: bool):
         while True:
             try:
                 response = await self.client.request(
-                        method, path, params=params, json=json, data=data  # type: ignore
+                    method, path, params=params, json=json, data=data,  # type: ignore
+                    follow_redirects=allow_redirects  # type: ignore
                 )
             except httpx.ReadTimeout:
                 pass
