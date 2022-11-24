@@ -6,7 +6,7 @@ from typing import Optional, Dict, List, Union
 import httpx
 from httpx import AsyncClient, Response
 
-from netschoolapi import data, errors, schemas
+from netschoolapi import errors, schemas
 
 __all__ = ['NetSchoolAPI']
 
@@ -142,7 +142,7 @@ class NetSchoolAPI:
             return response
 
     async def download_attachment(
-            self, attachment: data.Attachment,
+            self, attachment: schemas.Attachment,
             path_or_file: Union[BytesIO, str] = None,
             requests_timeout: int = None):
         """
@@ -167,7 +167,7 @@ class NetSchoolAPI:
             file.close()
 
     async def download_attachment_as_bytes(
-            self, attachment: data.Attachment, requests_timeout: int = None,
+            self, attachment: schemas.Attachment, requests_timeout: int = None,
     ) -> BytesIO:
         attachment_contents_buffer = BytesIO()
         await self.download_attachment(
@@ -181,7 +181,7 @@ class NetSchoolAPI:
         start: Optional[date] = None,
         end: Optional[date] = None,
         requests_timeout: int = None,
-    ) -> data.Diary:
+    ) -> schemas.Diary:
         if not start:
             monday = date.today() - timedelta(days=date.today().weekday())
             start = monday
@@ -200,14 +200,14 @@ class NetSchoolAPI:
         )
         diary_schema = schemas.Diary()
         diary_schema.context['assignment_types'] = self._assignment_types
-        return data.diary(diary_schema.load(response.json()))
+        return diary_schema.load(response.json())
 
     async def overdue(
         self,
         start: Optional[date] = None,
         end: Optional[date] = None,
         requests_timeout: int = None,
-    ) -> List[data.Assignment]:
+    ) -> List[schemas.Assignment]:
         if not start:
             monday = date.today() - timedelta(days=date.today().weekday())
             start = monday
@@ -227,25 +227,22 @@ class NetSchoolAPI:
         assignments_schema = schemas.Assignment()
         assignments_schema.context['assignment_types'] = self._assignment_types
         assignments = assignments_schema.load(response.json(), many=True)
-        return [data.Assignment(**assignment) for assignment in assignments]
+        return assignments
 
     async def announcements(
             self, take: Optional[int] = -1,
-            requests_timeout: int = None) -> List[data.Announcement]:
+            requests_timeout: int = None) -> List[schemas.Announcement]:
         response = await self._request_with_optional_relogin(
             requests_timeout,
             'announcements',
             params={'take': take},
         )
         announcements = schemas.Announcement().load(response.json(), many=True)
-        return [
-            data.announcement(announcement)
-            for announcement in announcements
-        ]
+        return announcements
 
     async def attachments(
-            self, assignment: data.Assignment,
-            requests_timeout: int = None) -> List[data.Attachment]:
+            self, assignment: schemas.Assignment,
+            requests_timeout: int = None) -> List[schemas.Attachment]:
         response = await self._request_with_optional_relogin(
             requests_timeout,
             method="POST",
@@ -258,15 +255,15 @@ class NetSchoolAPI:
             return []
         attachments_json = response[0]['attachments']
         attachments = schemas.Attachment().load(attachments_json, many=True)
-        return [data.Attachment(**attachment) for attachment in attachments]
+        return attachments
 
-    async def school(self, requests_timeout: int = None):
+    async def school(self, requests_timeout: int = None) -> schemas.School:
         response = await self._request_with_optional_relogin(
             requests_timeout,
             'schools/{0}/card'.format(self._school_id),
         )
         school = schemas.School().load(response.json())
-        return data.School(**school)
+        return school
 
     async def logout(self, requests_timeout: int = None):
         try:

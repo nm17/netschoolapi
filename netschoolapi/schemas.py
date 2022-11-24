@@ -17,11 +17,18 @@ class Attachment(NetSchoolAPISchema):
     description = fields.String(allow_none=True, missing='')
 
 
+class Author(NetSchoolAPISchema):
+    id = fields.Integer()
+    full_name = fields.String(data_key="fio")
+    nickname = fields.String(data_key="nickName")
+
+
 class Announcement(NetSchoolAPISchema):
     name = fields.String()
     content = fields.String(data_key='description')
     post_date = fields.DateTime(data_key='postDate')
     attachments = fields.List(fields.Nested(Attachment), missing=[])
+    author = fields.Nested(Author)
 
 
 class Assignment(NetSchoolAPISchema):
