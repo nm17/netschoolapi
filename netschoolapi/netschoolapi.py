@@ -132,7 +132,7 @@ class NetSchoolAPI:
             follow_redirects=False):
         try:
             response = await self._wrapped_client.request(
-                requests_timeout, request
+                requests_timeout, request, follow_redirects
             )
         except httpx.HTTPStatusError as http_status_error:
             if (
@@ -339,6 +339,7 @@ class NetSchoolAPI:
                     method="GET",
                     url="users/photo",
                     params={"at": self._access_token, "userId": user_id},
-                )
+                ),
+                follow_redirects=True,
             )
         ).content)
