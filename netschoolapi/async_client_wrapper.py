@@ -11,9 +11,7 @@ DEFAULT_REQUESTS_TIMEOUT = 5
 
 class Requester(Protocol):
 
-    def __call__(
-            self, path: str, method="GET", params: dict = None,
-            json: dict = None, data: dict = None) -> Awaitable:
+    def __call__(self, request: httpx.Request, follow_redirects=False) -> Awaitable:
         pass
 
 
@@ -31,33 +29,26 @@ class AsyncClientWrapper:
         return functools.partial(self.request, requests_timeout)
 
     async def request(
-            self, requests_timeout: Optional[int], path: str,
-            method="GET", params: dict = None, json: dict = None,
-            data: dict = None, allow_redirects=False):
+            self, requests_timeout: Optional[int], request: httpx.Request,
+            follow_redirects=False):
         if requests_timeout is None:
             requests_timeout = self._default_requests_timeout
         try:
             if requests_timeout == 0:
                 return await self._infinite_request(
-                    path, method, params, json, data, allow_redirects
+                    request, follow_redirects
                 )
             else:
                 return await asyncio.wait_for(self._infinite_request(
-                    path, method, params, json, data, allow_redirects
+                    request, follow_redirects
                 ), requests_timeout)
         except asyncio.TimeoutError:
             raise errors.NoResponseFromServer from None
 
-    async def _infinite_request(
-            self, path: str, method: str, params: Optional[dict],
-            json: Optional[dict], data: Optional[dict],
-            allow_redirects: bool):
+    async def _infinite_request(self, request: httpx.Request, follow_redirects: bool):
         while True:
             try:
-                response = await self.client.request(
-                    method, path, params=params, json=json, data=data,  # type: ignore
-                    follow_redirects=allow_redirects  # type: ignore
-                )
+                response = await self.client.send(request, follow_redirects=follow_redirects)
             except httpx.ReadTimeout:
                 pass
             else:

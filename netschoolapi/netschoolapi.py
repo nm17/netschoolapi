@@ -19,8 +19,7 @@ async def _die_on_bad_status(response: Response):
 
 
 class NetSchoolAPI:
-    def __init__(
-            self, url: str, default_requests_timeout: int = None):
+    def __init__(self, url: str, default_requests_timeout: int = None):
         url = url.rstrip('/')
         self._wrapped_client = AsyncClientWrapper(
             async_client=AsyncClient(
@@ -51,10 +50,14 @@ class NetSchoolAPI:
             requests_timeout: int = None):
         requester = self._wrapped_client.make_requester(requests_timeout)
         # Getting the `NSSESSIONID` cookie for `auth/getdata`
-        await requester('logindata')
+        await requester(self._wrapped_client.client.build_request(
+            method="GET", url="logindata"
+        ))
 
         # Getting the `NSSESSIONID` cookie for `login`
-        response = await requester('auth/getdata', method="POST")
+        response = await requester(self._wrapped_client.client.build_request(
+            method="POST", url='auth/getdata'
+        ))
         login_meta = response.json()
         salt = login_meta.pop('salt')
 
@@ -66,16 +69,18 @@ class NetSchoolAPI:
 
         try:
             response = await requester(
-                'login',
-                data={
-                    'loginType': 1,
-                    **(await self._address(school_name_or_id, requester)),
-                    'un': user_name,
-                    'pw': pw,
-                    'pw2': pw2,
-                    **login_meta,
-                },
-                method="POST"
+                self._wrapped_client.client.build_request(
+                    method="POST",
+                    url='login',
+                    data={
+                        'loginType': 1,
+                        **(await self._address(school_name_or_id, requester)),
+                        'un': user_name,
+                        'pw': pw,
+                        'pw2': pw2,
+                        **login_meta,
+                    },
+                )
             )
         except httpx.HTTPStatusError as http_status_error:
             if http_status_error.response.status_code == httpx.codes.CONFLICT:
@@ -99,18 +104,22 @@ class NetSchoolAPI:
         self._access_token = auth_result["at"]
         self._wrapped_client.client.headers['at'] = auth_result['at']
 
-        response = await requester('student/diary/init')
+        response = await requester(self._wrapped_client.client.build_request(
+            method="GET", url='student/diary/init',
+        ))
         diary_info = response.json()
         student = diary_info['students'][diary_info['currentStudentId']]
         self._student_id = student['studentId']
 
-        response = await requester('years/current')
+        response = await requester(self._wrapped_client.client.build_request(
+            method="GET", url='years/current'
+        ))
         year_reference = response.json()
         self._year_id = year_reference['id']
 
-        response = await requester(
-            'grade/assignment/types', params={'all': False}
-        )
+        response = await requester(self._wrapped_client.client.build_request(
+            method="GET", url="grade/assignment/types", params={"all": False},
+        ))
         assignment_reference = response.json()
         self._assignment_types = {
             assignment['id']: assignment['name']
@@ -119,13 +128,11 @@ class NetSchoolAPI:
         self._login_data = (user_name, password, school_name_or_id)
 
     async def _request_with_optional_relogin(
-            self, requests_timeout: Optional[int], path: str,
-            method="GET", params: dict = None, json: dict = None,
-            data: dict = None, allow_redirects=False):
+            self, requests_timeout: Optional[int], request: httpx.Request,
+            follow_redirects=False):
         try:
             response = await self._wrapped_client.request(
-                requests_timeout, path, method, params, json,
-                data, allow_redirects
+                requests_timeout, request
             )
         except httpx.HTTPStatusError as http_status_error:
             if (
@@ -135,8 +142,7 @@ class NetSchoolAPI:
                 if self._login_data:
                     await self.login(*self._login_data)
                     return await self._request_with_optional_relogin(
-                        requests_timeout, path, method, params, json,
-                        data, allow_redirects
+                        requests_timeout, request, follow_redirects
                     )
                 else:
                     raise errors.AuthError(
@@ -154,7 +160,9 @@ class NetSchoolAPI:
         buffer.write((
             await self._request_with_optional_relogin(
                 requests_timeout,
-                f"attachments/{attachment_id}",
+                self._wrapped_client.client.build_request(
+                    method="GET", url=f"attachments/{attachment_id}",
+                )
             )
         ).content)
 
@@ -172,13 +180,16 @@ class NetSchoolAPI:
 
         response = await self._request_with_optional_relogin(
             requests_timeout,
-            'student/diary',
-            params={
-                'studentId': self._student_id,
-                'yearId': self._year_id,
-                'weekStart': start.isoformat(),
-                'weekEnd': end.isoformat(),
-            },
+            self._wrapped_client.client.build_request(
+                method="GET",
+                url="student/diary",
+                params={
+                    'studentId': self._student_id,
+                    'yearId': self._year_id,
+                    'weekStart': start.isoformat(),
+                    'weekEnd': end.isoformat(),
+                },
+            )
         )
         diary_schema = schemas.Diary()
         diary_schema.context['assignment_types'] = self._assignment_types
@@ -199,13 +210,16 @@ class NetSchoolAPI:
 
         response = await self._request_with_optional_relogin(
             requests_timeout,
-            'student/diary/pastMandatory',
-            params={
-                'studentId': self._student_id,
-                'yearId': self._year_id,
-                'weekStart': start.isoformat(),
-                'weekEnd': end.isoformat(),
-            },
+            self._wrapped_client.client.build_request(
+                method="GET",
+                url='student/diary/pastMandatory',
+                params={
+                    'studentId': self._student_id,
+                    'yearId': self._year_id,
+                    'weekStart': start.isoformat(),
+                    'weekEnd': end.isoformat(),
+                },
+            )
         )
         assignments_schema = schemas.Assignment()
         assignments_schema.context['assignment_types'] = self._assignment_types
@@ -217,8 +231,11 @@ class NetSchoolAPI:
             requests_timeout: int = None) -> List[schemas.Announcement]:
         response = await self._request_with_optional_relogin(
             requests_timeout,
-            'announcements',
-            params={'take': take},
+            self._wrapped_client.client.build_request(
+                method="GET",
+                url="announcements",
+                params={"take": take},
+            )
         )
         announcements = schemas.Announcement().load(response.json(), many=True)
         return announcements  # type: ignore
@@ -228,10 +245,12 @@ class NetSchoolAPI:
             requests_timeout: int = None) -> List[schemas.Attachment]:
         response = await self._request_with_optional_relogin(
             requests_timeout,
-            method="POST",
-            path='student/diary/get-attachments',
-            params={'studentId': self._student_id},
-            json={'assignId': [assignment_id]},
+            self._wrapped_client.client.build_request(
+                method="POST",
+                url='student/diary/get-attachments',
+                params={'studentId': self._student_id},
+                json={'assignId': [assignment_id]},
+            ),
         )
         response = response.json()
         if not response:
@@ -243,7 +262,10 @@ class NetSchoolAPI:
     async def school(self, requests_timeout: int = None) -> schemas.School:
         response = await self._request_with_optional_relogin(
             requests_timeout,
-            'schools/{0}/card'.format(self._school_id),
+            self._wrapped_client.client.build_request(
+                method="GET",
+                url='schools/{0}/card'.format(self._school_id),
+            )
         )
         school = schemas.School().load(response.json())
         return school  # type: ignore
@@ -252,8 +274,10 @@ class NetSchoolAPI:
         try:
             await self._wrapped_client.request(
                 requests_timeout,
-                'auth/logout',
-                method="POST",
+                self._wrapped_client.client.build_request(
+                    method="POST",
+                    url='auth/logout',
+                )
             )
         except httpx.HTTPStatusError as http_status_error:
             if (
@@ -273,14 +297,24 @@ class NetSchoolAPI:
 
     async def schools(
             self, requests_timeout: int = None) -> List[schemas.ShortSchool]:
-        resp = await self._wrapped_client.request(requests_timeout, "addresses/schools")
+        resp = await self._wrapped_client.request(
+            requests_timeout,
+            self._wrapped_client.client.build_request(
+                method="GET", url="addresses/schools",
+            )
+        )
         schools = schemas.ShortSchool().load(resp.json(), many=True)
         return schools  # type: ignore
 
     async def _address(
             self, school_name_or_id: Union[int, str],
             requester: Requester) -> Dict[str, int]:
-        schools = (await requester("addresses/schools")).json()
+        schools = (await requester(
+            self._wrapped_client.client.build_request(
+                method="GET",
+                url="addresses/schools",
+            )
+        )).json()
 
         for school in schools:
             if school["name"] == school_name_or_id or school["id"] == school_name_or_id:
@@ -301,8 +335,10 @@ class NetSchoolAPI:
         buffer.write((
             await self._request_with_optional_relogin(
                 requests_timeout,
-                "users/photo",
-                params={"at": self._access_token, "userId": user_id},
-                allow_redirects=True
+                self._wrapped_client.client.build_request(
+                    method="GET",
+                    url="users/photo",
+                    params={"at": self._access_token, "userId": user_id},
+                )
             )
         ).content)
