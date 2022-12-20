@@ -18,28 +18,23 @@ class NetSchoolAPISchema(Schema):
 class Attachment(NetSchoolAPISchema):
     id: int
     name: str = field(metadata=dict(data_key='originalFileName'))
-    description: str = field(metadata=dict(
-        allow_none=True, missing='', required=False
-    ))
+    description: str = field(metadata=dict(allow_none=True, missing=''))
 
 
-@dataclass
 class Author(NetSchoolAPISchema):
     id = fields.Integer()
     full_name: str = field(metadata=dict(data_key="fio"))
     nickname: str = field(metadata=dict(data_key="nickName"))
 
 
-@dataclass
 class Announcement(NetSchoolAPISchema):
     name: str
-    author: Author
     content: str = field(metadata=dict(data_key='description'))
     post_date: datetime.datetime = field(metadata=dict(data_key='postDate'))
     attachments: List[Attachment] = field(default_factory=list)
+    author: Author
 
 
-@dataclass
 class Assignment(NetSchoolAPISchema):
     id: int
     type: fields.Function = field(metadata=dict(
@@ -55,7 +50,6 @@ class Assignment(NetSchoolAPISchema):
         deserialize=lambda mark_comment: mark_comment['name'],
         missing='',
         data_key='markComment',
-        required=False,
     ))
     deadline: datetime.date = field(metadata=dict(data_key='dueDate'))
 
@@ -69,53 +63,46 @@ class Assignment(NetSchoolAPISchema):
         return assignment
 
 
-@dataclass
 class Lesson(NetSchoolAPISchema):
     day: datetime.date
     start: datetime.time = field(metadata=dict(data_key='startTime'))
     end: datetime.time = field(metadata=dict(data_key='endTime'))
-    room: str = field(metadata=dict(
-        missing='', allow_none=True, required=False
-    ))
+    room: str = field(metadata=dict(missing='', allow_none=True))
     number: int
     subject: str = field(metadata=dict(data_key='subjectName'))
-    assignments: List[Assignment] = field(default_factory=list)
+    assignments = fields.List(fields.Nested(Assignment), missing=[])
 
 
-@dataclass
 class Day(NetSchoolAPISchema):
-    lessons: List[Lesson]
-    day: datetime.date = field(metadata=dict(data_key='date'))
+    day = fields.Date(data_key='date')
+    lessons = fields.List(fields.Nested(Lesson))
 
 
-@dataclass
 class Diary(NetSchoolAPISchema):
-    start: datetime.date = field(metadata=dict(data_key='weekStart'))
-    end: datetime.date = field(metadata=dict(data_key='weekEnd'))
-    schedule: List[Day] = field(metadata=dict(data_key='weekDays'))
+    start = fields.Date(data_key='weekStart')
+    end = fields.Date(data_key='weekEnd')
+    schedule = fields.List(fields.Nested(Day), data_key='weekDays')
 
 
-@dataclass
 class ShortSchool(NetSchoolAPISchema):
-    name: str
-    id: int
-    address: str = field(metadata=dict(data_key="addressString"))
+    name = fields.String()
+    id = fields.Integer()
+    address = fields.String(data_key="addressString")
 
 
-@dataclass
 class School(NetSchoolAPISchema):
-    name: str = field(metadata=dict(data_key='fullSchoolName'))
-    about: str
+    name = fields.String(data_key='fullSchoolName')
+    about = fields.String()
 
-    address: str
-    email: str
-    site: str = field(metadata=dict(data_key='web'))
-    phone: str = field(metadata=dict(data_key='phones'))
+    address = fields.String()
+    email = fields.String()
+    site = fields.String(data_key='web')
+    phone = fields.String(data_key='phones')
 
-    director: str
-    AHC: str = field(metadata=dict(data_key='principalAHC'))
-    IT: str = field(metadata=dict(data_key='principalIT'))
-    UVR: str = field(metadata=dict(data_key='principalUVR'))
+    director = fields.String()
+    AHC = fields.String(data_key='principalAHC')
+    IT = fields.String(data_key='principalIT')
+    UVR = fields.String(data_key='principalUVR')
 
     @pre_load
     def unwrap_nested_dicts(
@@ -129,7 +116,3 @@ class School(NetSchoolAPISchema):
 
 AttachmentSchema = class_schema(Attachment)
 DiarySchema = class_schema(Diary)
-AssignmentSchema = class_schema(Assignment)
-ShortSchoolSchema = class_schema(ShortSchool)
-SchoolSchema = class_schema(School)
-AnnouncementSchema = class_schema(Announcement)

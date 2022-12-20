@@ -1,2 +1,4 @@
 httpx
 marshmallow
+marshmallow-dataclass
+typing_extensions

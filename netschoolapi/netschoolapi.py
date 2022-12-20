@@ -191,7 +191,7 @@ class NetSchoolAPI:
                 },
             )
         )
-        diary_schema = schemas.Diary()
+        diary_schema = schemas.DiarySchema()
         diary_schema.context['assignment_types'] = self._assignment_types
         diary = diary_schema.load(response.json())
         return diary  # type: ignore
@@ -221,7 +221,7 @@ class NetSchoolAPI:
                 },
             )
         )
-        assignments_schema = schemas.Assignment()
+        assignments_schema = schemas.AssignmentSchema()
         assignments_schema.context['assignment_types'] = self._assignment_types
         assignments = assignments_schema.load(response.json(), many=True)
         return assignments  # type: ignore
@@ -237,7 +237,7 @@ class NetSchoolAPI:
                 params={"take": take},
             )
         )
-        announcements = schemas.Announcement().load(response.json(), many=True)
+        announcements = schemas.AnnouncementSchema().load(response.json(), many=True)
         return announcements  # type: ignore
 
     async def attachments(
@@ -256,7 +256,7 @@ class NetSchoolAPI:
         if not response:
             return []
         attachments_json = response[0]['attachments']
-        attachments = schemas.Attachment().load(attachments_json, many=True)
+        attachments = schemas.AttachmentSchema().load(attachments_json, many=True)
         return attachments  # type: ignore
 
     async def school(self, requests_timeout: int = None) -> schemas.School:
@@ -267,7 +267,7 @@ class NetSchoolAPI:
                 url='schools/{0}/card'.format(self._school_id),
             )
         )
-        school = schemas.School().load(response.json())
+        school = schemas.SchoolSchema().load(response.json())
         return school  # type: ignore
 
     async def logout(self, requests_timeout: int = None):
@@ -303,7 +303,7 @@ class NetSchoolAPI:
                 method="GET", url="addresses/schools",
             )
         )
-        schools = schemas.ShortSchool().load(resp.json(), many=True)
+        schools = schemas.ShortSchoolSchema().load(resp.json(), many=True)
         return schools  # type: ignore
 
     async def _address(

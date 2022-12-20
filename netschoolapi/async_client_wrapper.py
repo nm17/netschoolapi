@@ -1,6 +1,7 @@
 import asyncio
 import functools
-from typing import Optional, Awaitable, Protocol
+from typing import Optional, Awaitable
+from typing_extensions import Protocol
 
 import httpx
 
@@ -11,7 +12,7 @@ DEFAULT_REQUESTS_TIMEOUT = 5
 
 class Requester(Protocol):
 
-    def __call__(self, request: httpx.Request, follow_redirects=False) -> Awaitable:
+    def __call__(self, request: httpx.Request, follow_redirects=False) -> Awaitable:  # type: ignore
         pass
 
 
