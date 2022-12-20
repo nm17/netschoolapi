@@ -74,7 +74,13 @@ class NetSchoolAPI:
                     url='login',
                     data={
                         'loginType': 1,
-                        **(await self._address(school_name_or_id, requester)),
+                        'scid': (
+                            (await self._get_school_id(
+                                school_name_or_id, requester,
+                            ))
+                            if isinstance(school_name_or_id, str) else
+                            school_name_or_id
+                        ),
                         'un': user_name,
                         'pw': pw,
                         'pw2': pw2,
@@ -306,8 +312,8 @@ class NetSchoolAPI:
         schools = schemas.ShortSchoolSchema().load(resp.json(), many=True)
         return schools  # type: ignore
 
-    async def _address(
-            self, school_name_or_id: Union[int, str],
+    async def _get_school_id(
+            self, school_name: str,
             requester: Requester) -> Dict[str, int]:
         schools = (await requester(
             self._wrapped_client.client.build_request(
@@ -316,24 +322,11 @@ class NetSchoolAPI:
             )
         )).json()
 
-        checker = (
-            (lambda school: school_name_or_id in school["name"])
-            if isinstance(school_name_or_id, str) else
-            (lambda school: school["id"] == school_name_or_id)
-        )
         for school in schools:
-            if checker(school):
-                print(school)
+            if school["shortName"] == school_name:
                 self._school_id = school['id']
-                return {
-                    'cid': school['countryId'],
-                    'sid': school['stateId'],
-                    'pid': school['municipalityDistrictId'],
-                    'cn': school['cityId'],
-                    'sft': 2,
-                    'scid': school['id'],
-                }
-        raise errors.SchoolNotFoundError(school_name_or_id)
+                return school["id"]
+        raise errors.SchoolNotFoundError(school_name)
 
     async def download_profile_picture(
             self, user_id: int, buffer: BytesIO,
