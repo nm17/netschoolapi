@@ -2,7 +2,7 @@ from dataclasses import field, dataclass
 import datetime
 from typing import Any, Dict, List
 
-from marshmallow import EXCLUDE, Schema, fields, pre_load
+from marshmallow import EXCLUDE, Schema, pre_load
 from marshmallow_dataclass import class_schema
 
 __all__ = ['Attachment', 'Announcement', 'Assignment', 'Diary', 'School']
@@ -25,7 +25,7 @@ class Attachment(NetSchoolAPISchema):
 
 @dataclass
 class Author(NetSchoolAPISchema):
-    id = fields.Integer()
+    id: int
     full_name: str = field(metadata=dict(data_key="fio"))
     nickname: str = field(metadata=dict(data_key="nickName"))
 
