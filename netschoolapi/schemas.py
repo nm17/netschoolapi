@@ -43,7 +43,7 @@ class Announcement(NetSchoolAPISchema):
 class Assignment(NetSchoolAPISchema):
     id: int
     comment: str
-    type: int
+    type: str
     content: str = field(metadata=dict(data_key='assignmentName'))
     mark: int = field(metadata=dict(allow_none=True, data_key='mark'))
     is_duty: bool = field(metadata=dict(data_key='dutyMark'))
@@ -58,7 +58,7 @@ class Assignment(NetSchoolAPISchema):
             assignment.update({'mark': None, 'dutyMark': False})
         mark_comment = assignment.pop("markComment", None)
         assignment["comment"] = mark_comment["name"] if mark_comment else ""
-        assignment["type"] = self.context["assignment_types"][assignment["typeId"]]
+        assignment["type"] = self.context["assignment_types"][assignment.pop("typeId")]
         return assignment
 
 
