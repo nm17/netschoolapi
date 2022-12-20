@@ -42,21 +42,11 @@ class Announcement(NetSchoolAPISchema):
 @dataclass
 class Assignment(NetSchoolAPISchema):
     id: int
-    type: fields.Function = field(metadata=dict(
-        deserialize=(
-            lambda type_id, context: context['assignment_types'][type_id]
-        ),
-        data_key='typeId',
-    ))
+    comment: str
+    type: int
     content: str = field(metadata=dict(data_key='assignmentName'))
     mark: int = field(metadata=dict(allow_none=True, data_key='mark'))
     is_duty: bool = field(metadata=dict(data_key='dutyMark'))
-    comment: fields.Function = field(metadata=dict(
-        deserialize=lambda mark_comment: mark_comment['name'],
-        missing='',
-        data_key='markComment',
-        required=False,
-    ))
     deadline: datetime.date = field(metadata=dict(data_key='dueDate'))
 
     @pre_load
@@ -66,6 +56,9 @@ class Assignment(NetSchoolAPISchema):
             assignment.update(mark)
         else:
             assignment.update({'mark': None, 'dutyMark': False})
+        mark_comment = assignment.pop("markComment", None)
+        assignment["comment"] = mark_comment["name"] if mark_comment else ""
+        assignment["type"] = self.context["assignment_types"][assignment["typeId"]]
         return assignment
 
 

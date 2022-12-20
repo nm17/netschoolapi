@@ -300,7 +300,7 @@ class NetSchoolAPI:
         resp = await self._wrapped_client.request(
             requests_timeout,
             self._wrapped_client.client.build_request(
-                method="GET", url="addresses/schools",
+                method="GET", url="schools/search",
             )
         )
         schools = schemas.ShortSchoolSchema().load(resp.json(), many=True)
@@ -312,12 +312,18 @@ class NetSchoolAPI:
         schools = (await requester(
             self._wrapped_client.client.build_request(
                 method="GET",
-                url="addresses/schools",
+                url="schools/search",
             )
         )).json()
 
+        checker = (
+            (lambda school: school_name_or_id in school["name"])
+            if isinstance(school_name_or_id, str) else
+            (lambda school: school["id"] == school_name_or_id)
+        )
         for school in schools:
-            if school["name"] == school_name_or_id or school["id"] == school_name_or_id:
+            if checker(school):
+                print(school)
                 self._school_id = school['id']
                 return {
                     'cid': school['countryId'],
