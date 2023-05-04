@@ -51,6 +51,6 @@ class AsyncClientWrapper:
             try:
                 response = await self.client.send(request, follow_redirects=follow_redirects)
             except httpx.ReadTimeout:
-                pass
+                await asyncio.sleep(0.1)
             else:
                 return response
