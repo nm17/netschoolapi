@@ -13,8 +13,6 @@ setup(
     long_description_content_type='text/markdown',
     author='nm17',
     author_email='dannevergame@gmail.com',
-    maintainer='igorlanov',
-    maintainer_email='vonalrogi@ya.ru',
     url='https://github.com/nm17/netschoolapi/',
     packages=['netschoolapi'],
     package_data={'netschoolapi': ['py.typed']},
