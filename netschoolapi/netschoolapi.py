@@ -306,7 +306,7 @@ class NetSchoolAPI:
         resp = await self._wrapped_client.request(
             requests_timeout,
             self._wrapped_client.client.build_request(
-                method="GET", url="schools/search?name=Y",
+                method="GET", url="schools/search?name=У",
             )
         )
         schools = schemas.ShortSchoolSchema().load(resp.json(), many=True)
