@@ -283,6 +283,7 @@ class NetSchoolAPI:
                 self._wrapped_client.client.build_request(
                     method="POST",
                     url='auth/logout',
+                    data={'at': self._access_token}
                 )
             )
         except httpx.HTTPStatusError as http_status_error:
